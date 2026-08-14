@@ -1,0 +1,46 @@
+{
+  "expo": {
+    "name": "VoiceNote",
+    "slug": "voicenote",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.voicenote.app",
+      "infoPlist": {
+        "NSMicrophoneUsageDescription": "VoiceNote needs the microphone to convert your speech into text live.",
+        "NSSpeechRecognitionUsageDescription": "VoiceNote needs speech recognition to turn your voice into words as you speak."
+      }
+    },
+    "android": {
+      "package": "com.voicenote.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#0B1C24",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "permissions": [
+        "android.permission.RECORD_AUDIO"
+      ],
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      [
+        "expo-speech-recognition",
+        {
+          "microphonePermission": "Allow VoiceNote to use the microphone for live voice typing.",
+          "speechRecognitionPermission": "Allow VoiceNote to convert your speech into text as you speak.",
+          "androidSpeechServicePackages": [
+            "com.google.android.googlequicksearchbox"
+          ]
+        }
+      ]
+    ]
+  }
+}
