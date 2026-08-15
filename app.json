@@ -38,6 +38,15 @@
             "com.google.android.googlequicksearchbox"
           ]
         }
+      ],
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#EEF3F7",
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 180,
+          "resizeMode": "contain"
+        }
       ]
     ]
   }

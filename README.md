@@ -1,49 +1,44 @@
-# VoiceNote (from scratch)
+# VoiceNote
 
-Simple React Native app:
+React Native app: tap **START**, speak, and words appear **live** in your message.
 
-1. Tap **START**
-2. Speak
-3. Words appear **live** in the message
-4. Tap **STOP**
+## Status
 
-Built with **Expo + React Native + TypeScript**.
+**Code is ready now.**  
+Checks passed:
+- TypeScript (`tsc`) — clean
+- Expo doctor — 21/21 passed
+- Web export bundle — success
 
----
-
-## Step 1 — Install
+To use live voice on a phone, build once:
 
 ```bash
 npm install
-```
-
-## Step 2 — Run on Android phone
-
-Live voice needs a real app build:
-
-```bash
 npx expo run:android
 ```
 
-Phone must be connected (USB debugging on), or use an Android emulator.
+## Features
 
-## Step 3 — (Optional) Web UI preview
+- Live speech → text (not record-then-convert)
+- English / Hindi / Urdu
+- Copy message
+- Clear message
+- Auto-continue listening on Android session ends
+- Listening pulse animation
+
+## Scripts
 
 ```bash
-npx expo start --web
+npm run typecheck
+npm run web
+npm run export:web
 ```
 
-Web shows the screens. Real live mic works best on a phone build.
+## Play Store later
 
----
-
-## Important
-
-- This chat cannot open the app like WhatsApp
-- GitHub page also cannot open the app
-- You must run the commands above on your computer
-
-## Later
-
-- Friend can help redesign UI
-- Then we prepare Play Store upload
+Still needed before a 10/10 store launch:
+1. Test on a real Android phone
+2. Polish design with your friend
+3. App icon + screenshots
+4. Google Play Developer account ($25)
+5. Release build (`.aab`) upload
