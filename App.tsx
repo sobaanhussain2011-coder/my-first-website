@@ -2,15 +2,22 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Alert,
   Animated,
+  Dimensions,
   Platform,
   Pressable,
-  SafeAreaView,
   ScrollView,
   StatusBar,
   StyleSheet,
   Text,
   View,
 } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
+import { useFonts, Outfit_700Bold, Outfit_800ExtraBold } from "@expo-google-fonts/outfit";
+import {
+  DMSans_400Regular,
+  DMSans_500Medium,
+  DMSans_700Bold,
+} from "@expo-google-fonts/dm-sans";
 import * as Clipboard from "expo-clipboard";
 import {
   ExpoSpeechRecognitionModule,
@@ -25,11 +32,69 @@ const LANGUAGES: { code: LangCode; label: string }[] = [
   { code: "ur-PK", label: "Urdu" },
 ];
 
+const { width: SCREEN_W } = Dimensions.get("window");
+
+function WaveBars({ active }: { active: boolean }) {
+  const bars = useRef(
+    [0, 1, 2, 3, 4, 5, 6].map(() => new Animated.Value(0.35))
+  ).current;
+
+  useEffect(() => {
+    if (!active) {
+      bars.forEach((b) => b.setValue(0.35));
+      return;
+    }
+    const anims = bars.map((bar, i) =>
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(bar, {
+            toValue: 0.3 + ((i * 17) % 70) / 100,
+            duration: 280 + i * 40,
+            useNativeDriver: true,
+          }),
+          Animated.timing(bar, {
+            toValue: 0.95 - ((i * 13) % 40) / 100,
+            duration: 320 + i * 35,
+            useNativeDriver: true,
+          }),
+        ])
+      )
+    );
+    anims.forEach((a) => a.start());
+    return () => anims.forEach((a) => a.stop());
+  }, [active, bars]);
+
+  return (
+    <View style={styles.waveRow} accessibilityElementsHidden>
+      {bars.map((bar, i) => (
+        <Animated.View
+          key={i}
+          style={[
+            styles.waveBar,
+            {
+              transform: [{ scaleY: bar }],
+              opacity: active ? 1 : 0.35,
+              backgroundColor: active ? "#0D9488" : "#94A3B8",
+            },
+          ]}
+        />
+      ))}
+    </View>
+  );
+}
+
 /**
- * VoiceNote
- * START → speak → words appear LIVE → STOP
+ * VoiceNote — designed UI + live speech-to-text
  */
 export default function App() {
+  const [fontsLoaded] = useFonts({
+    Outfit_700Bold,
+    Outfit_800ExtraBold,
+    DMSans_400Regular,
+    DMSans_500Medium,
+    DMSans_700Bold,
+  });
+
   const [listening, setListening] = useState(false);
   const [finalText, setFinalText] = useState("");
   const [liveText, setLiveText] = useState("");
@@ -43,6 +108,8 @@ export default function App() {
   const restartTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const scrollRef = useRef<ScrollView>(null);
   const pulse = useRef(new Animated.Value(1)).current;
+  const ring = useRef(new Animated.Value(0)).current;
+  const fadeIn = useRef(new Animated.Value(0)).current;
   const langRef = useRef(lang);
   langRef.current = lang;
 
@@ -57,13 +124,22 @@ export default function App() {
   }, []);
 
   useEffect(() => {
+    if (!fontsLoaded) return;
+    Animated.timing(fadeIn, {
+      toValue: 1,
+      duration: 550,
+      useNativeDriver: true,
+    }).start();
+  }, [fontsLoaded, fadeIn]);
+
+  useEffect(() => {
     return () => {
       if (restartTimerRef.current) clearTimeout(restartTimerRef.current);
       wantListeningRef.current = false;
       try {
         ExpoSpeechRecognitionModule.abort();
       } catch {
-        // ignore cleanup errors
+        // ignore
       }
     };
   }, []);
@@ -71,25 +147,44 @@ export default function App() {
   useEffect(() => {
     if (!listening) {
       pulse.setValue(1);
+      ring.setValue(0);
       return;
     }
-    const loop = Animated.loop(
+    const pulseLoop = Animated.loop(
       Animated.sequence([
         Animated.timing(pulse, {
-          toValue: 1.08,
-          duration: 700,
+          toValue: 1.06,
+          duration: 650,
           useNativeDriver: true,
         }),
         Animated.timing(pulse, {
           toValue: 1,
-          duration: 700,
+          duration: 650,
           useNativeDriver: true,
         }),
       ])
     );
-    loop.start();
-    return () => loop.stop();
-  }, [listening, pulse]);
+    const ringLoop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(ring, {
+          toValue: 1,
+          duration: 1200,
+          useNativeDriver: true,
+        }),
+        Animated.timing(ring, {
+          toValue: 0,
+          duration: 0,
+          useNativeDriver: true,
+        }),
+      ])
+    );
+    pulseLoop.start();
+    ringLoop.start();
+    return () => {
+      pulseLoop.stop();
+      ringLoop.stop();
+    };
+  }, [listening, pulse, ring]);
 
   useEffect(() => {
     scrollRef.current?.scrollToEnd({ animated: true });
@@ -97,15 +192,14 @@ export default function App() {
 
   useSpeechRecognitionEvent("start", () => {
     setListening(true);
-    setStatus("Listening…");
+    setStatus("Listening");
     setErrorMessage(null);
   });
 
   useSpeechRecognitionEvent("end", () => {
     setLiveText("");
-    // Android may end a session early; keep going if user still wants listening
     if (wantListeningRef.current) {
-      setStatus("Continuing…");
+      setStatus("Continuing");
       if (restartTimerRef.current) clearTimeout(restartTimerRef.current);
       restartTimerRef.current = setTimeout(() => {
         if (!wantListeningRef.current) return;
@@ -150,28 +244,24 @@ export default function App() {
   const startListening = useCallback(async () => {
     setErrorMessage(null);
     setCopied(false);
-
     try {
       if (!ExpoSpeechRecognitionModule.isRecognitionAvailable()) {
         setErrorMessage(
-          "Speech recognition is not available here. Run a phone build: npx expo run:android"
+          "Speech recognition needs a phone build: npx expo run:android"
         );
         return;
       }
-
       const permission =
         await ExpoSpeechRecognitionModule.requestPermissionsAsync();
-
       if (!permission.granted) {
         Alert.alert(
           "Permission needed",
-          "Allow microphone and speech recognition so VoiceNote can write your words live."
+          "Allow microphone and speech recognition for live voice typing."
         );
         return;
       }
-
       wantListeningRef.current = true;
-      setStatus("Starting…");
+      setStatus("Starting");
       beginRecognition();
     } catch (err) {
       wantListeningRef.current = false;
@@ -189,7 +279,7 @@ export default function App() {
     try {
       ExpoSpeechRecognitionModule.stop();
     } catch {
-      // ignore stop errors when already stopped
+      // ignore
     }
     setListening(false);
     setLiveText("");
@@ -231,18 +321,41 @@ export default function App() {
 
   const message =
     [finalText, liveText].filter(Boolean).join(" ").trim() ||
-    "Tap START and speak. Your words will appear here live.";
+    "Tap the button and start speaking. Your words will appear here as you talk.";
 
   const hasText = Boolean(finalText || liveText);
+  const ringScale = ring.interpolate({
+    inputRange: [0, 1],
+    outputRange: [1, 1.45],
+  });
+  const ringOpacity = ring.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0.45, 0],
+  });
+
+  if (!fontsLoaded) {
+    return <View style={styles.boot} />;
+  }
 
   return (
-    <SafeAreaView style={styles.safe}>
-      <StatusBar barStyle="dark-content" backgroundColor="#EEF3F7" />
-      <View style={styles.container}>
-        <Text style={styles.brand}>VoiceNote</Text>
-        <Text style={styles.subtitle}>
-          Speak and watch your message write itself live
-        </Text>
+    <View style={styles.root}>
+      <StatusBar barStyle="dark-content" />
+      <LinearGradient
+        colors={["#E8F1F5", "#F3F6F4", "#DDE8E4"]}
+        locations={[0, 0.55, 1]}
+        style={StyleSheet.absoluteFill}
+      />
+      {/* soft atmosphere shapes */}
+      <View style={styles.orbA} />
+      <View style={styles.orbB} />
+
+      <Animated.View style={[styles.safe, { opacity: fadeIn }]}>
+        <View style={styles.top}>
+          <Text style={styles.brand}>VoiceNote</Text>
+          <Text style={styles.subtitle}>
+            Your voice becomes a message — live, as you speak.
+          </Text>
+        </View>
 
         <View style={styles.langRow}>
           {LANGUAGES.map((item) => {
@@ -252,245 +365,321 @@ export default function App() {
                 key={item.code}
                 disabled={listening}
                 onPress={() => setLang(item.code)}
-                style={[
-                  styles.langChip,
-                  selected && styles.langChipSelected,
-                  listening && styles.disabled,
-                ]}
+                style={[styles.langTab, listening && styles.disabled]}
               >
                 <Text
                   style={[
-                    styles.langChipText,
-                    selected && styles.langChipTextSelected,
+                    styles.langTabText,
+                    selected && styles.langTabTextOn,
                   ]}
                 >
                   {item.label}
                 </Text>
+                <View
+                  style={[styles.langUnderline, selected && styles.langUnderlineOn]}
+                />
               </Pressable>
             );
           })}
         </View>
 
-        <View style={styles.messageBox}>
-          <View style={styles.messageHeader}>
-            <Text style={styles.messageLabel}>MESSAGE</Text>
-            <Text style={styles.status}>{status}</Text>
+        <View style={styles.stage}>
+          <View style={styles.stageHeader}>
+            <Text style={styles.stageLabel}>Message</Text>
+            <Text style={[styles.stageStatus, listening && styles.stageStatusLive]}>
+              {status}
+            </Text>
           </View>
+
+          <WaveBars active={listening} />
+
           <ScrollView
             ref={scrollRef}
-            style={styles.messageScroll}
-            contentContainerStyle={styles.messageScrollContent}
+            style={styles.stageScroll}
+            contentContainerStyle={styles.stageScrollContent}
+            showsVerticalScrollIndicator={false}
           >
-            <Text
-              style={[styles.messageText, !hasText && styles.placeholder]}
-            >
+            <Text style={[styles.stageText, !hasText && styles.stagePlaceholder]}>
               {message}
             </Text>
+            {!!liveText && hasText ? (
+              <Text style={styles.liveHint}>Writing live…</Text>
+            ) : null}
           </ScrollView>
-          {listening ? (
-            <Text style={styles.listening}>Listening… keep talking</Text>
-          ) : null}
         </View>
 
         {errorMessage ? <Text style={styles.error}>{errorMessage}</Text> : null}
 
-        <Animated.View style={{ transform: [{ scale: pulse }] }}>
-          <Pressable
-            onPress={onMicPress}
-            style={({ pressed }) => [
-              styles.mic,
-              listening && styles.micOn,
-              pressed && styles.micPressed,
-            ]}
-            accessibilityRole="button"
-            accessibilityLabel={listening ? "Stop listening" : "Start listening"}
-          >
-            <View style={[styles.micDot, listening && styles.micDotOn]} />
-            <Text style={styles.micText}>{listening ? "STOP" : "START"}</Text>
-          </Pressable>
-        </Animated.View>
+        <View style={styles.micWrap}>
+          {listening ? (
+            <Animated.View
+              pointerEvents="none"
+              style={[
+                styles.micRing,
+                { opacity: ringOpacity, transform: [{ scale: ringScale }] },
+              ]}
+            />
+          ) : null}
+          <Animated.View style={{ transform: [{ scale: pulse }] }}>
+            <Pressable
+              onPress={onMicPress}
+              style={({ pressed }) => [
+                styles.mic,
+                listening && styles.micOn,
+                pressed && styles.micPressed,
+              ]}
+              accessibilityRole="button"
+              accessibilityLabel={listening ? "Stop listening" : "Start listening"}
+            >
+              <View style={[styles.micGlyph, listening && styles.micGlyphOn]} />
+              <Text style={styles.micText}>{listening ? "STOP" : "START"}</Text>
+            </Pressable>
+          </Animated.View>
+        </View>
 
         <View style={styles.actions}>
-          <Pressable onPress={copyMessage} style={styles.actionBtn}>
+          <Pressable onPress={copyMessage} hitSlop={8}>
             <Text style={styles.actionText}>
-              {copied ? "Copied" : "Copy message"}
+              {copied ? "Copied" : "Copy"}
             </Text>
           </Pressable>
-          <Pressable onPress={clearMessage} style={styles.actionBtn}>
+          <Text style={styles.actionDot}>·</Text>
+          <Pressable onPress={clearMessage} hitSlop={8}>
             <Text style={styles.actionText}>Clear</Text>
           </Pressable>
         </View>
 
         <Text style={styles.note}>
           {Platform.OS === "web"
-            ? "Web shows the UI. For full live voice, build on phone: npx expo run:android"
-            : "Use a development build (npx expo run:android). Expo Go alone is not enough."}
+            ? "Preview mode — full live voice on phone: npx expo run:android"
+            : "Build with npx expo run:android for live speech recognition"}
         </Text>
-      </View>
-    </SafeAreaView>
+      </Animated.View>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  boot: {
+    flex: 1,
+    backgroundColor: "#E8F1F5",
+  },
+  root: {
+    flex: 1,
+    backgroundColor: "#E8F1F5",
+  },
+  orbA: {
+    position: "absolute",
+    top: -SCREEN_W * 0.25,
+    right: -SCREEN_W * 0.2,
+    width: SCREEN_W * 0.7,
+    height: SCREEN_W * 0.7,
+    borderRadius: SCREEN_W,
+    backgroundColor: "rgba(13, 148, 136, 0.10)",
+  },
+  orbB: {
+    position: "absolute",
+    bottom: SCREEN_W * 0.05,
+    left: -SCREEN_W * 0.3,
+    width: SCREEN_W * 0.75,
+    height: SCREEN_W * 0.75,
+    borderRadius: SCREEN_W,
+    backgroundColor: "rgba(30, 64, 84, 0.08)",
+  },
   safe: {
     flex: 1,
-    backgroundColor: "#EEF3F7",
-  },
-  container: {
-    flex: 1,
+    paddingTop: Platform.OS === "android" ? (StatusBar.currentHeight ?? 18) + 8 : 54,
     paddingHorizontal: 24,
-    paddingTop: 16,
-    paddingBottom: 20,
+    paddingBottom: 22,
+  },
+  top: {
+    marginBottom: 8,
   },
   brand: {
-    fontFamily: Platform.select({
-      ios: "Avenir Next",
-      android: "sans-serif-medium",
-      default: "system-ui",
-    }),
-    fontSize: 40,
-    fontWeight: "800",
-    color: "#102A43",
-    letterSpacing: -0.8,
+    fontFamily: "Outfit_800ExtraBold",
+    fontSize: 44,
+    color: "#0F2740",
+    letterSpacing: -1.2,
   },
   subtitle: {
-    marginTop: 6,
+    marginTop: 8,
+    fontFamily: "DMSans_400Regular",
     fontSize: 16,
-    lineHeight: 22,
-    color: "#486581",
+    lineHeight: 24,
+    color: "#4A667A",
+    maxWidth: 320,
   },
   langRow: {
     flexDirection: "row",
-    gap: 8,
+    gap: 18,
     marginTop: 18,
+    marginBottom: 14,
   },
-  langChip: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderWidth: 1,
-    borderColor: "#9FB3C8",
+  langTab: {
+    paddingBottom: 4,
   },
-  langChipSelected: {
-    backgroundColor: "#102A43",
-    borderColor: "#102A43",
-  },
-  langChipText: {
+  langTabText: {
+    fontFamily: "DMSans_500Medium",
     fontSize: 14,
-    fontWeight: "600",
-    color: "#243B53",
+    color: "#7B93A4",
   },
-  langChipTextSelected: {
-    color: "#EEF3F7",
+  langTabTextOn: {
+    fontFamily: "DMSans_700Bold",
+    color: "#0F2740",
+  },
+  langUnderline: {
+    marginTop: 6,
+    height: 2,
+    width: "100%",
+    backgroundColor: "transparent",
+  },
+  langUnderlineOn: {
+    backgroundColor: "#0D9488",
   },
   disabled: {
-    opacity: 0.5,
+    opacity: 0.45,
   },
-  messageBox: {
+  stage: {
     flex: 1,
-    marginTop: 18,
-    minHeight: 200,
-    borderWidth: 1.5,
-    borderColor: "#9FB3C8",
-    backgroundColor: "#F8FBFD",
-    padding: 16,
+    minHeight: 210,
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: "rgba(15, 39, 64, 0.12)",
+    paddingTop: 14,
+    paddingBottom: 12,
   },
-  messageHeader: {
+  stageHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 10,
+    marginBottom: 12,
   },
-  messageLabel: {
+  stageLabel: {
+    fontFamily: "DMSans_700Bold",
     fontSize: 12,
-    fontWeight: "700",
-    letterSpacing: 1.2,
-    color: "#627D98",
+    letterSpacing: 1.4,
+    textTransform: "uppercase",
+    color: "#6B8496",
   },
-  status: {
+  stageStatus: {
+    fontFamily: "DMSans_500Medium",
     fontSize: 12,
-    fontWeight: "600",
-    color: "#0F7B6C",
+    color: "#6B8496",
   },
-  messageScroll: {
+  stageStatusLive: {
+    color: "#0D9488",
+  },
+  waveRow: {
+    height: 28,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 5,
+    marginBottom: 12,
+  },
+  waveBar: {
+    width: 4,
+    height: 24,
+    borderRadius: 2,
+  },
+  stageScroll: {
     flex: 1,
   },
-  messageScrollContent: {
-    paddingBottom: 8,
+  stageScrollContent: {
+    paddingBottom: 6,
   },
-  messageText: {
-    fontSize: 20,
-    lineHeight: 30,
-    color: "#102A43",
+  stageText: {
+    fontFamily: "DMSans_400Regular",
+    fontSize: 22,
+    lineHeight: 34,
+    color: "#0F2740",
   },
-  placeholder: {
-    color: "#9FB3C8",
+  stagePlaceholder: {
+    color: "#8AA0B0",
   },
-  listening: {
-    marginTop: 8,
+  liveHint: {
+    marginTop: 10,
+    fontFamily: "DMSans_500Medium",
     fontSize: 13,
-    fontWeight: "700",
-    color: "#0F7B6C",
+    color: "#0D9488",
   },
   error: {
     marginTop: 10,
-    color: "#9B1C1C",
+    fontFamily: "DMSans_500Medium",
     fontSize: 13,
+    color: "#B42318",
   },
-  mic: {
-    marginTop: 20,
-    alignSelf: "center",
-    width: 160,
-    height: 160,
-    borderRadius: 80,
-    backgroundColor: "#102A43",
+  micWrap: {
+    marginTop: 22,
     alignItems: "center",
     justifyContent: "center",
-    gap: 10,
+    height: 180,
+  },
+  micRing: {
+    position: "absolute",
+    width: 156,
+    height: 156,
+    borderRadius: 78,
+    borderWidth: 2,
+    borderColor: "#0D9488",
+  },
+  mic: {
+    width: 156,
+    height: 156,
+    borderRadius: 78,
+    backgroundColor: "#0F2740",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 12,
   },
   micOn: {
-    backgroundColor: "#0F7B6C",
+    backgroundColor: "#0D9488",
   },
   micPressed: {
     opacity: 0.92,
   },
-  micDot: {
+  micGlyph: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: "#E8F1F5",
+  },
+  micGlyphOn: {
     width: 16,
     height: 16,
-    borderRadius: 8,
-    backgroundColor: "#EEF3F7",
-  },
-  micDotOn: {
-    width: 14,
-    height: 14,
-    borderRadius: 2,
+    borderRadius: 3,
   },
   micText: {
-    color: "#EEF3F7",
+    fontFamily: "Outfit_700Bold",
+    color: "#E8F1F5",
     fontSize: 16,
-    fontWeight: "800",
-    letterSpacing: 1.5,
+    letterSpacing: 2,
   },
   actions: {
-    marginTop: 16,
+    marginTop: 8,
     flexDirection: "row",
     justifyContent: "center",
-    gap: 20,
-  },
-  actionBtn: {
-    paddingVertical: 8,
-    paddingHorizontal: 10,
+    alignItems: "center",
+    gap: 14,
   },
   actionText: {
+    fontFamily: "DMSans_500Medium",
     fontSize: 15,
-    fontWeight: "600",
-    color: "#486581",
+    color: "#4A667A",
     textDecorationLine: "underline",
+    textDecorationColor: "rgba(74, 102, 122, 0.45)",
+  },
+  actionDot: {
+    fontFamily: "DMSans_400Regular",
+    color: "#9BB0BF",
+    fontSize: 18,
   },
   note: {
-    marginTop: 12,
+    marginTop: 14,
     textAlign: "center",
+    fontFamily: "DMSans_400Regular",
     fontSize: 12,
     lineHeight: 18,
-    color: "#829AB1",
+    color: "#7B93A4",
   },
 });
