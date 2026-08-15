@@ -69,24 +69,38 @@ export default function App() {
   const startListening = useCallback(async () => {
     setErrorMessage(null);
 
-    const permission =
-      await ExpoSpeechRecognitionModule.requestPermissionsAsync();
+    try {
+      if (!ExpoSpeechRecognitionModule.isRecognitionAvailable()) {
+        setErrorMessage(
+          "Speech recognition is not available on this device. Use an Android/iOS phone build."
+        );
+        return;
+      }
 
-    if (!permission.granted) {
-      Alert.alert(
-        "Permission needed",
-        "Allow microphone + speech recognition so your voice can become text live."
-      );
-      return;
+      const permission =
+        await ExpoSpeechRecognitionModule.requestPermissionsAsync();
+
+      if (!permission.granted) {
+        Alert.alert(
+          "Permission needed",
+          "Allow microphone + speech recognition so your voice can become text live."
+        );
+        return;
+      }
+
+      ExpoSpeechRecognitionModule.start({
+        lang: "en-US",
+        interimResults: true, // show text WHILE speaking
+        continuous: true, // keep going until STOP
+        addsPunctuation: true,
+        maxAlternatives: 1,
+      });
+    } catch (err) {
+      const msg =
+        err instanceof Error ? err.message : "Could not start voice capture.";
+      setErrorMessage(msg);
+      setListening(false);
     }
-
-    ExpoSpeechRecognitionModule.start({
-      lang: "en-US",
-      interimResults: true, // show text WHILE speaking
-      continuous: true, // keep going until STOP
-      addsPunctuation: true,
-      maxAlternatives: 1,
-    });
   }, []);
 
   const stopListening = useCallback(() => {
