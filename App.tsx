@@ -6,6 +6,7 @@ import {
   Platform,
   Pressable,
   ScrollView,
+  Share,
   StatusBar,
   StyleSheet,
   Text,
@@ -19,6 +20,7 @@ import {
   DMSans_700Bold,
 } from "@expo-google-fonts/dm-sans";
 import * as Clipboard from "expo-clipboard";
+import * as IntentLauncher from "expo-intent-launcher";
 import {
   ExpoSpeechRecognitionModule,
   useSpeechRecognitionEvent,
@@ -319,6 +321,54 @@ export default function App() {
     setTimeout(() => setCopied(false), 1800);
   }, [finalText, liveText]);
 
+  const shareToAnyApp = useCallback(async () => {
+    const text = [finalText, liveText].filter(Boolean).join(" ").trim();
+    if (!text) {
+      Alert.alert(
+        "Nothing to send",
+        "Speak a message first, then send it to WhatsApp, Instagram, Gmail, or any app."
+      );
+      return;
+    }
+    try {
+      await Share.share({
+        message: text,
+        title: "VoiceNote message",
+      });
+    } catch {
+      setErrorMessage("Could not open share menu.");
+    }
+  }, [finalText, liveText]);
+
+  const openKeyboardSettings = useCallback(async () => {
+    if (Platform.OS !== "android") {
+      Alert.alert(
+        "Android only",
+        "VoiceNote Keyboard (system keyboard) works on Android so you can type by voice inside other apps."
+      );
+      return;
+    }
+    try {
+      await IntentLauncher.startActivityAsync(
+        IntentLauncher.ActivityAction.INPUT_METHOD_SETTINGS
+      );
+    } catch {
+      Alert.alert(
+        "Open settings manually",
+        "Go to Settings → System → Languages & input → On-screen keyboard → Enable VoiceNote Keyboard."
+      );
+    }
+  }, []);
+
+  const showConnectHelp = useCallback(() => {
+    Alert.alert(
+      "Connect to other apps",
+      Platform.OS === "android"
+        ? "1) Tap Enable Keyboard and turn ON VoiceNote Keyboard\n2) Open WhatsApp / Instagram / any app\n3) Tap a text box → switch keyboard to VoiceNote\n4) Speak — text types there live\n\nOr use Send to app / Copy from this screen."
+        : "On Android phone builds you can enable VoiceNote Keyboard to type into any app. On this preview, use Copy or Send to app."
+    );
+  }, []);
+
   const message =
     [finalText, liveText].filter(Boolean).join(" ").trim() ||
     "Tap the button and start speaking. Your words will appear here as you talk.";
@@ -435,6 +485,27 @@ export default function App() {
               <Text style={styles.micText}>{listening ? "STOP" : "START"}</Text>
             </Pressable>
           </Animated.View>
+        </View>
+
+        <View style={styles.actions}>
+          <Pressable onPress={shareToAnyApp} hitSlop={8} style={styles.primaryLink}>
+            <Text style={styles.primaryLinkText}>Send to any app</Text>
+          </Pressable>
+        </View>
+
+        <View style={styles.connectBox}>
+          <Text style={styles.connectTitle}>Use in WhatsApp & more</Text>
+          <Text style={styles.connectBody}>
+            Enable VoiceNote Keyboard to type by voice inside almost any app.
+          </Text>
+          <View style={styles.connectRow}>
+            <Pressable onPress={openKeyboardSettings} style={styles.connectBtn}>
+              <Text style={styles.connectBtnText}>Enable Keyboard</Text>
+            </Pressable>
+            <Pressable onPress={showConnectHelp} style={styles.connectBtnGhost}>
+              <Text style={styles.connectBtnGhostText}>How?</Text>
+            </Pressable>
+          </View>
         </View>
 
         <View style={styles.actions}>
@@ -661,6 +732,60 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     gap: 14,
+  },
+  primaryLink: {
+    marginTop: 4,
+    paddingVertical: 6,
+  },
+  primaryLinkText: {
+    fontFamily: "DMSans_700Bold",
+    fontSize: 15,
+    color: "#0D9488",
+    textDecorationLine: "underline",
+  },
+  connectBox: {
+    marginTop: 14,
+    paddingTop: 14,
+    borderTopWidth: 1,
+    borderTopColor: "rgba(15, 39, 64, 0.10)",
+  },
+  connectTitle: {
+    fontFamily: "Outfit_700Bold",
+    fontSize: 16,
+    color: "#0F2740",
+  },
+  connectBody: {
+    marginTop: 4,
+    fontFamily: "DMSans_400Regular",
+    fontSize: 13,
+    lineHeight: 19,
+    color: "#4A667A",
+  },
+  connectRow: {
+    marginTop: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+  connectBtn: {
+    backgroundColor: "#0F2740",
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+  },
+  connectBtnText: {
+    fontFamily: "DMSans_700Bold",
+    fontSize: 13,
+    color: "#E8F1F5",
+  },
+  connectBtnGhost: {
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  connectBtnGhostText: {
+    fontFamily: "DMSans_500Medium",
+    fontSize: 13,
+    color: "#4A667A",
+    textDecorationLine: "underline",
   },
   actionText: {
     fontFamily: "DMSans_500Medium",

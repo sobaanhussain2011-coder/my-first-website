@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/voice_keyboard_root"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:background="#EEF3F7">
+
+    <TextView
+        android:id="@+id/voice_keyboard_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="VoiceNote"
+        android:textStyle="bold"
+        android:textSize="18sp"
+        android:textColor="#0F2740" />
+
+    <TextView
+        android:id="@+id/voice_keyboard_status"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:text="Tap mic and speak — text goes into any app"
+        android:textSize="13sp"
+        android:textColor="#4A667A" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="14dp"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/voice_keyboard_delete"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            android:layout_marginEnd="8dp"
+            android:text="Delete"
+            android:textAllCaps="false" />
+
+        <Button
+            android:id="@+id/voice_keyboard_mic"
+            android:layout_width="0dp"
+            android:layout_height="64dp"
+            android:layout_weight="1.4"
+            android:text="START"
+            android:textAllCaps="false"
+            android:textStyle="bold" />
+
+        <Button
+            android:id="@+id/voice_keyboard_enter"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            android:layout_marginStart="8dp"
+            android:text="Enter"
+            android:textAllCaps="false" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/voice_keyboard_space"
+            android:layout_width="0dp"
+            android:layout_height="44dp"
+            android:layout_weight="2"
+            android:layout_marginEnd="8dp"
+            android:text="Space"
+            android:textAllCaps="false" />
+
+        <Button
+            android:id="@+id/voice_keyboard_switch"
+            android:layout_width="0dp"
+            android:layout_height="44dp"
+            android:layout_weight="1"
+            android:text="Other KB"
+            android:textAllCaps="false" />
+    </LinearLayout>
+</LinearLayout>

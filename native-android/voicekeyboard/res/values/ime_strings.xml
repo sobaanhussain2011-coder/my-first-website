@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="voice_keyboard_label">VoiceNote Keyboard</string>
+    <string name="voice_keyboard_subtype">Voice typing</string>
+</resources>

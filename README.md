@@ -1,44 +1,47 @@
 # VoiceNote
 
-React Native app: tap **START**, speak, and words appear **live** in your message.
+Speak → text appears live. Use it inside this app, **or inside other apps**.
 
-## Status
+## Connect to other apps (important)
 
-**Code is ready now.**  
-Checks passed:
-- TypeScript (`tsc`) — clean
-- Expo doctor — 21/21 passed
-- Web export bundle — success
+### A) Send / Copy (works right away)
+1. Speak in VoiceNote
+2. Tap **Send to any app** → pick WhatsApp, Instagram, Gmail, etc.
+3. Or **Copy** and paste anywhere
 
-To use live voice on a phone, build once:
+### B) VoiceNote Keyboard (types INTO other apps)
+This is the feature that makes the app useful system-wide on Android:
+
+1. Build & install: `npx expo run:android`
+2. Open VoiceNote once and allow microphone
+3. Tap **Enable Keyboard**
+4. Turn **ON** “VoiceNote Keyboard”
+5. Open WhatsApp / any app → tap a text box
+6. Switch keyboard to **VoiceNote Keyboard**
+7. Speak — words type into that app
+
+## Run
 
 ```bash
 npm install
 npx expo run:android
 ```
 
-## Features
+Web preview (UI only):
 
-- Live speech → text (not record-then-convert)
-- English / Hindi / Urdu
-- Copy message
-- Clear message
-- Auto-continue listening on Android session ends
-- Listening pulse animation
+```bash
+npx expo start --web
+```
 
-## Scripts
+## Quality checks
 
 ```bash
 npm run typecheck
-npm run web
-npm run export:web
+npx expo-doctor
 ```
 
-## Play Store later
+## Stack
 
-Still needed before a 10/10 store launch:
-1. Test on a real Android phone
-2. Polish design with your friend
-3. App icon + screenshots
-4. Google Play Developer account ($25)
-5. Release build (`.aab`) upload
+- Expo + React Native (TypeScript)
+- Live speech: `expo-speech-recognition`
+- System keyboard (IME): `plugins/withVoiceKeyboard` + Android `VoiceNoteIME`
