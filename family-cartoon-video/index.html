@@ -5,73 +5,67 @@
   <title>Milo — short 3D clip</title>
   <style>
     html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; background: #1a1028; }
-    canvas { display: block; }
+    canvas { display: block; width: 100%; height: 100%; }
     #ui {
       position: fixed; inset: 0; pointer-events: none;
       font-family: "Trebuchet MS", "Segoe UI", sans-serif;
     }
     #title {
-      position: absolute; top: 42px; left: 0; right: 0; text-align: center;
-      color: #fff8e8; font-size: 54px; font-weight: 900; letter-spacing: 1px;
+      position: absolute; top: 36px; left: 0; right: 0; text-align: center;
+      color: #fff8e8; font-size: 52px; font-weight: 900; letter-spacing: 1px;
       text-shadow: 0 6px 0 #5a2a10, 0 10px 24px rgba(0,0,0,.35);
-      opacity: 0; transform: translateY(-12px);
+      opacity: 0;
     }
     #sub {
-      position: absolute; bottom: 54px; left: 8%; right: 8%;
-      text-align: center; color: #fffdf6; font-size: 34px; font-weight: 800;
+      position: absolute; bottom: 48px; left: 8%; right: 8%;
+      text-align: center; color: #fffdf6; font-size: 32px; font-weight: 800;
       background: rgba(40, 18, 28, .55); border-radius: 22px; padding: 14px 22px;
       text-shadow: 0 2px 0 #000; opacity: 0;
     }
-    #grade {
-      position: absolute; inset: 0;
-      background: radial-gradient(ellipse at 50% 40%, transparent 40%, rgba(80,30,10,.18) 100%);
+    #err {
+      position: absolute; top: 80px; left: 20px; right: 20px;
+      color: #ffb4b4; font-size: 22px; white-space: pre-wrap; display: none;
     }
   </style>
 </head>
 <body>
   <div id="ui">
-    <div id="grade"></div>
     <div id="title">MILO &amp; LILA</div>
     <div id="sub"></div>
+    <div id="err"></div>
   </div>
   <script src="vendor/three.min.js"></script>
   <script>
+window.onerror = function (msg) {
+  var el = document.getElementById("err");
+  el.style.display = "block";
+  el.textContent = String(msg);
+};
 (function () {
   const PLAY_DELAY = 5.6;
   const DURATION = 16;
   const t0 = performance.now();
 
-  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
-  renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
-  renderer.setSize(innerWidth, innerHeight);
+  const renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setPixelRatio(1);
+  renderer.setSize(innerWidth, innerHeight, false);
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-  renderer.outputColorSpace = THREE.SRGBColorSpace;
-  renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.12;
   document.body.prepend(renderer.domElement);
 
   const scene = new THREE.Scene();
-  scene.background = new THREE.Color(0x87c6ff);
-  scene.fog = new THREE.Fog(0xc8e4ff, 8, 22);
+  scene.background = new THREE.Color(0x7ec8ff);
 
-  const camera = new THREE.PerspectiveCamera(32, innerWidth / innerHeight, 0.1, 80);
-  camera.position.set(0, 1.55, 5.4);
+  const camera = new THREE.PerspectiveCamera(40, innerWidth / innerHeight, 0.1, 80);
+  camera.position.set(0.2, 1.55, 5.2);
+  camera.lookAt(0.1, 0.95, 0.8);
 
-  function phys(color, extra) {
-    return new THREE.MeshPhysicalMaterial(Object.assign({
+  function std(color, extra) {
+    return new THREE.MeshStandardMaterial(Object.assign({
       color: color,
-      roughness: 0.42,
-      metalness: 0,
-      sheen: 0.65,
-      sheenColor: new THREE.Color(0xffd2be),
-      sheenRoughness: 0.4,
-      clearcoat: 0.18,
-      clearcoatRoughness: 0.5
+      roughness: 0.45,
+      metalness: 0.02
     }, extra || {}));
-  }
-  function matte(color, rough) {
-    return new THREE.MeshStandardMaterial({ color: color, roughness: rough == null ? 0.7 : rough, metalness: 0 });
   }
   function mesh(geo, mat) {
     const m = new THREE.Mesh(geo, mat);
@@ -79,149 +73,137 @@
     m.receiveShadow = true;
     return m;
   }
+  function cyl(rTop, rBot, h, mat) {
+    return mesh(new THREE.CylinderGeometry(rTop, rBot, h, 16), mat);
+  }
+  function ball(r, mat, sx, sy, sz) {
+    const m = mesh(new THREE.SphereGeometry(r, 24, 18), mat);
+    if (sx) m.scale.set(sx, sy || sx, sz || sx);
+    return m;
+  }
 
-  const hemi = new THREE.HemisphereLight(0xfff1d6, 0x6a4a30, 0.85);
-  scene.add(hemi);
-  const key = new THREE.DirectionalLight(0xfff3c8, 2.15);
-  key.position.set(-3.2, 6.4, 3.6);
+  scene.add(new THREE.HemisphereLight(0xfff3d4, 0x6b4a2a, 1.05));
+  const key = new THREE.DirectionalLight(0xfff1c4, 2.0);
+  key.position.set(-2.8, 6.0, 4.2);
   key.castShadow = true;
-  key.shadow.mapSize.set(2048, 2048);
-  key.shadow.camera.near = 0.5;
-  key.shadow.camera.far = 22;
-  key.shadow.camera.left = -6;
-  key.shadow.camera.right = 6;
-  key.shadow.camera.top = 6;
-  key.shadow.camera.bottom = -4;
-  key.shadow.bias = -0.0006;
+  key.shadow.mapSize.set(1024, 1024);
+  key.shadow.camera.left = -5;
+  key.shadow.camera.right = 5;
+  key.shadow.camera.top = 5;
+  key.shadow.camera.bottom = -3;
   scene.add(key);
-  scene.add(new THREE.DirectionalLight(0xa8c8ff, 0.55)).position.set(4, 2.2, -3);
-  scene.add(new THREE.PointLight(0xffc07a, 1.1, 8, 2)).position.set(1.4, 2.3, 1.2);
+  scene.add(new THREE.DirectionalLight(0xb4d4ff, 0.55)).position.set(4, 2, -2);
+  scene.add(new THREE.PointLight(0xffc27a, 1.2, 10)).position.set(1.2, 2.4, 1.4);
 
-  /* --- kitchen set --- */
-  const floor = mesh(new THREE.PlaneGeometry(18, 18), matte(0xf3d7a8, 0.85));
+  const floor = mesh(new THREE.PlaneGeometry(20, 20), std(0xf0d2a0, { roughness: 0.9 }));
   floor.rotation.x = -Math.PI / 2;
   scene.add(floor);
 
-  const back = mesh(new THREE.PlaneGeometry(14, 7), matte(0xffe7c2, 0.9));
-  back.position.set(0, 3.2, -3.2);
+  const back = mesh(new THREE.PlaneGeometry(16, 8), std(0xffe4bc, { roughness: 0.92 }));
+  back.position.set(0, 3.4, -3.0);
   scene.add(back);
-  const leftW = mesh(new THREE.PlaneGeometry(8, 7), matte(0xffd9a8, 0.9));
-  leftW.rotation.y = Math.PI / 2;
-  leftW.position.set(-4.6, 3.2, 0);
-  scene.add(leftW);
+  const left = mesh(new THREE.PlaneGeometry(10, 8), std(0xffd7a8, { roughness: 0.92 }));
+  left.rotation.y = Math.PI / 2;
+  left.position.set(-5.2, 3.4, 1);
+  scene.add(left);
 
-  const win = mesh(new THREE.PlaneGeometry(2.3, 2.0), new THREE.MeshBasicMaterial({ color: 0x9ee7ff }));
-  win.position.set(-1.7, 2.55, -3.18);
+  const win = mesh(new THREE.PlaneGeometry(2.1, 1.8), new THREE.MeshBasicMaterial({ color: 0x9fe8ff }));
+  win.position.set(-1.6, 2.6, -2.98);
   scene.add(win);
-  const frame = mesh(new THREE.BoxGeometry(2.55, 2.25, 0.08), matte(0x8a4b22, 0.6));
-  frame.position.set(-1.7, 2.55, -3.16);
+  const frame = mesh(new THREE.BoxGeometry(2.35, 2.05, 0.08), std(0x8a4b22));
+  frame.position.set(-1.6, 2.6, -2.96);
   scene.add(frame);
-  const sun = mesh(new THREE.SphereGeometry(0.28, 24, 24), new THREE.MeshBasicMaterial({ color: 0xffe066 }));
-  sun.position.set(-1.15, 3.15, -3.1);
+  const sun = mesh(new THREE.SphereGeometry(0.26, 16, 16), new THREE.MeshBasicMaterial({ color: 0xffe066 }));
+  sun.position.set(-1.1, 3.15, -2.9);
   scene.add(sun);
 
-  const cab = mesh(new THREE.BoxGeometry(3.4, 1.15, 0.7), phys(0xe07a3a, { roughness: 0.35, sheen: 0.2 }));
-  cab.position.set(1.55, 2.85, -2.85);
+  const cab = mesh(new THREE.BoxGeometry(3.2, 1.1, 0.65), std(0xe07a3a, { roughness: 0.4 }));
+  cab.position.set(1.7, 2.9, -2.65);
   scene.add(cab);
 
-  const table = mesh(new THREE.CylinderGeometry(1.15, 1.2, 0.12, 40), phys(0xc47a38, { roughness: 0.4 }));
-  table.position.set(0.15, 0.82, 0.55);
+  const table = cyl(1.15, 1.2, 0.12, std(0xc47a38, { roughness: 0.4 }));
+  table.position.set(0.15, 0.82, 0.7);
   scene.add(table);
-  for (const x of [-0.7, 0.7]) {
-    const leg = mesh(new THREE.CylinderGeometry(0.06, 0.07, 0.82, 12), matte(0x8a4b22, 0.55));
-    leg.position.set(x, 0.41, 0.55);
+  [-0.7, 0.7].forEach(function (x) {
+    const leg = cyl(0.06, 0.07, 0.82, std(0x8a4b22));
+    leg.position.set(x, 0.41, 0.7);
     scene.add(leg);
-  }
+  });
 
-  const plate = mesh(new THREE.CylinderGeometry(0.28, 0.28, 0.04, 32), phys(0xfff7ee, { roughness: 0.25, clearcoat: 0.6 }));
-  plate.position.set(0.15, 0.91, 0.7);
+  const plate = cyl(0.26, 0.26, 0.04, std(0xfff6ee, { roughness: 0.25 }));
+  plate.position.set(0.15, 0.91, 0.85);
   scene.add(plate);
 
-  function makeCookie() {
-    const g = new THREE.Group();
-    const base = mesh(new THREE.SphereGeometry(0.16, 24, 16), phys(0xc9842a, { roughness: 0.7, sheen: 0 }));
-    base.scale.set(1, 0.38, 1);
-    g.add(base);
-    [[-0.05, 0.05, 0.06], [0.06, 0.04, -0.04], [0.01, 0.06, 0.02], [-0.07, 0.03, -0.05]].forEach(function (p) {
-      const chip = mesh(new THREE.SphereGeometry(0.028, 10, 10), matte(0x3a2214, 0.5));
-      chip.position.set(p[0], p[1], p[2]);
-      g.add(chip);
-    });
-    return g;
-  }
-  const cookie = makeCookie();
-  cookie.position.set(0.15, 0.98, 0.7);
+  const cookie = new THREE.Group();
+  const dough = ball(0.15, std(0xc9842a, { roughness: 0.75 }), 1, 0.38, 1);
+  cookie.add(dough);
+  [[-0.05, 0.05, 0.05], [0.06, 0.04, -0.04], [0.0, 0.06, 0.02]].forEach(function (p) {
+    const chip = ball(0.025, std(0x3a2214), 1, 1, 1);
+    chip.position.set(p[0], p[1], p[2]);
+    cookie.add(chip);
+  });
+  cookie.position.set(0.15, 0.98, 0.85);
   scene.add(cookie);
 
-  /* --- Pixar-like stylized character --- */
   function makeChar(opt) {
     const root = new THREE.Group();
-    const skin = phys(opt.skin);
-    const shirt = phys(opt.shirt, { sheen: 0.25, roughness: 0.55 });
-    const pants = phys(opt.pants, { sheen: 0.15, roughness: 0.65 });
-    const hairM = phys(opt.hair, { roughness: 0.55, sheen: 0.35, sheenColor: new THREE.Color(opt.hair) });
+    const skin = std(opt.skin, { roughness: 0.4 });
+    const shirt = std(opt.shirt, { roughness: 0.55 });
+    const pants = std(opt.pants, { roughness: 0.65 });
+    const hairM = std(opt.hair, { roughness: 0.5 });
 
     const hips = new THREE.Group();
-    hips.position.y = 0;
     root.add(hips);
 
-    const torso = mesh(new THREE.SphereGeometry(0.28, 28, 22), shirt);
-    torso.scale.set(opt.bodyW || 1.05, 1.15, 0.85);
-    torso.position.y = 0.72;
+    const torso = ball(0.30, shirt, opt.bodyW || 1.08, 1.18, 0.88);
+    torso.position.y = 0.78;
     hips.add(torso);
-
-    const belly = mesh(new THREE.SphereGeometry(0.22, 22, 18), shirt);
-    belly.scale.set(1.15, 0.85, 0.95);
-    belly.position.y = 0.52;
+    const belly = ball(0.24, shirt, 1.2, 0.88, 1.0);
+    belly.position.y = 0.55;
     hips.add(belly);
 
-    const neck = mesh(new THREE.CylinderGeometry(0.07, 0.08, 0.1, 12), skin);
-    neck.position.y = 1.02;
+    const neck = cyl(0.07, 0.08, 0.1, skin);
+    neck.position.y = 1.08;
     hips.add(neck);
 
     const head = new THREE.Group();
-    head.position.y = 1.28;
+    head.position.y = 1.36;
     hips.add(head);
 
-    const skull = mesh(new THREE.SphereGeometry(0.32, 32, 26), skin);
-    skull.scale.set(1.02, 1.06, 0.95);
+    const skull = ball(0.34, skin, 1.04, 1.08, 0.96);
     head.add(skull);
-    const jaw = mesh(new THREE.SphereGeometry(0.22, 24, 18), skin);
-    jaw.scale.set(1.15, 0.72, 0.95);
-    jaw.position.set(0, -0.16, 0.04);
+    const jaw = ball(0.23, skin, 1.18, 0.74, 0.96);
+    jaw.position.set(0, -0.17, 0.05);
     head.add(jaw);
-    const cheekL = mesh(new THREE.SphereGeometry(0.09, 16, 12), phys(opt.blush || 0xffb3a8, { transparent: true, opacity: 0.45, roughness: 0.7 }));
-    cheekL.position.set(-0.16, -0.06, 0.22);
-    head.add(cheekL);
-    const cheekR = cheekL.clone();
-    cheekR.position.x = 0.16;
-    head.add(cheekR);
 
-    const nose = mesh(new THREE.SphereGeometry(0.045, 12, 10), skin);
-    nose.position.set(0, -0.02, 0.30);
+    const blush = std(0xff9aa0, { transparent: true, opacity: 0.4, roughness: 0.8 });
+    const cL = ball(0.09, blush, 1, 1, 1);
+    cL.position.set(-0.17, -0.06, 0.24);
+    head.add(cL);
+    const cR = cL.clone();
+    cR.position.x = 0.17;
+    head.add(cR);
+
+    const nose = ball(0.048, skin, 1, 1, 1);
+    nose.position.set(0, -0.02, 0.32);
     head.add(nose);
 
     function makeEye(side) {
       const e = new THREE.Group();
-      e.position.set(side * 0.11, 0.05, 0.26);
-      const white = mesh(new THREE.SphereGeometry(0.078, 20, 16), phys(0xfffdf8, { roughness: 0.18, clearcoat: 0.7, sheen: 0 }));
-      white.scale.set(1, 1.08, 0.72);
+      e.position.set(side * 0.12, 0.06, 0.28);
+      const white = ball(0.082, std(0xfffdf8, { roughness: 0.2 }), 1, 1.1, 0.72);
       e.add(white);
-      const iris = mesh(new THREE.SphereGeometry(0.042, 16, 12), phys(opt.eye, { roughness: 0.25, clearcoat: 0.4 }));
-      iris.position.z = 0.038;
+      const iris = ball(0.044, std(opt.eye, { roughness: 0.25 }), 1, 1, 1);
+      iris.position.z = 0.04;
       e.add(iris);
-      const pupil = mesh(new THREE.SphereGeometry(0.022, 12, 10), new THREE.MeshBasicMaterial({ color: 0x141018 }));
-      pupil.position.z = 0.062;
+      const pupil = mesh(new THREE.SphereGeometry(0.023, 12, 10), new THREE.MeshBasicMaterial({ color: 0x141018 }));
+      pupil.position.z = 0.065;
       e.add(pupil);
-      const hi = mesh(new THREE.SphereGeometry(0.014, 10, 8), new THREE.MeshBasicMaterial({ color: 0xffffff }));
-      hi.position.set(-0.018, 0.02, 0.075);
+      const hi = mesh(new THREE.SphereGeometry(0.015, 10, 8), new THREE.MeshBasicMaterial({ color: 0xffffff }));
+      hi.position.set(-0.02, 0.022, 0.08);
       e.add(hi);
-      const hi2 = mesh(new THREE.SphereGeometry(0.008, 8, 8), new THREE.MeshBasicMaterial({ color: 0xffffff }));
-      hi2.position.set(0.016, -0.01, 0.07);
-      e.add(hi2);
-      const lid = mesh(new THREE.SphereGeometry(0.082, 16, 10), skin);
-      lid.scale.set(1.05, 0.45, 0.75);
-      lid.position.set(0, 0.055, 0.01);
+      const lid = ball(0.086, skin, 1.05, 0.42, 0.75);
+      lid.position.set(0, 0.058, 0.012);
       e.add(lid);
       return { group: e, lid: lid };
     }
@@ -230,134 +212,96 @@
     head.add(eyeL.group);
     head.add(eyeR.group);
 
-    const brow = matte(opt.hair, 0.7);
-    const bL = mesh(new THREE.CapsuleGeometry(0.012, 0.07, 4, 8), brow);
-    bL.rotation.z = 0.18;
-    bL.position.set(-0.11, 0.15, 0.27);
-    head.add(bL);
-    const bR = bL.clone();
-    bR.rotation.z = -0.18;
-    bR.position.x = 0.11;
-    head.add(bR);
-
-    const smile = mesh(new THREE.TorusGeometry(0.07, 0.012, 8, 16, Math.PI), matte(0xc45a58, 0.45));
+    const smile = mesh(new THREE.TorusGeometry(0.075, 0.013, 8, 16, Math.PI), std(0xc45a58, { roughness: 0.4 }));
     smile.rotation.x = Math.PI;
-    smile.position.set(0, -0.12, 0.27);
-    smile.scale.set(1.15, 0.7, 1);
+    smile.position.set(0, -0.13, 0.29);
+    smile.scale.set(1.2, 0.72, 1);
     head.add(smile);
 
-    /* hair */
     const hair = new THREE.Group();
     head.add(hair);
     if (opt.style === "boy") {
-      const cap = mesh(new THREE.SphereGeometry(0.33, 26, 18), hairM);
-      cap.scale.set(1.05, 0.72, 1.0);
-      cap.position.set(0, 0.14, -0.02);
+      const cap = ball(0.35, hairM, 1.06, 0.72, 1.02);
+      cap.position.set(0, 0.15, -0.02);
       hair.add(cap);
-      const bang = mesh(new THREE.SphereGeometry(0.12, 14, 12), hairM);
-      bang.scale.set(1.4, 0.6, 0.8);
-      bang.position.set(0, 0.18, 0.22);
+      const bang = ball(0.13, hairM, 1.45, 0.58, 0.8);
+      bang.position.set(0, 0.2, 0.23);
       hair.add(bang);
-      [-0.2, 0.2].forEach(function (x) {
-        const side = mesh(new THREE.SphereGeometry(0.12, 12, 10), hairM);
-        side.position.set(x, 0.06, 0.04);
+      [-0.22, 0.22].forEach(function (x) {
+        const side = ball(0.13, hairM, 1, 1, 1);
+        side.position.set(x, 0.06, 0.03);
         hair.add(side);
       });
-    } else if (opt.style === "girl") {
-      const cap = mesh(new THREE.SphereGeometry(0.34, 26, 18), hairM);
-      cap.scale.set(1.08, 0.85, 1.05);
-      cap.position.set(0, 0.08, -0.04);
+    } else {
+      const cap = ball(0.36, hairM, 1.1, 0.88, 1.06);
+      cap.position.set(0, 0.1, -0.04);
       hair.add(cap);
-      [-0.28, 0.28].forEach(function (x) {
-        const bun = mesh(new THREE.SphereGeometry(0.11, 14, 12), hairM);
-        bun.position.set(x, 0.12, -0.02);
+      [-0.3, 0.3].forEach(function (x) {
+        const bun = ball(0.12, hairM, 1, 1, 1);
+        bun.position.set(x, 0.14, -0.02);
         hair.add(bun);
       });
-      const bang = mesh(new THREE.SphereGeometry(0.1, 12, 10), hairM);
-      bang.scale.set(1.6, 0.5, 0.7);
-      bang.position.set(0, 0.2, 0.2);
+      const bang = ball(0.11, hairM, 1.65, 0.5, 0.72);
+      bang.position.set(0, 0.22, 0.22);
       hair.add(bang);
-    } else {
-      const cap = mesh(new THREE.SphereGeometry(0.33, 24, 16), hairM);
-      cap.scale.set(1.0, 0.7, 1.05);
-      cap.position.set(0, 0.16, -0.04);
-      hair.add(cap);
-      const bun = mesh(new THREE.SphereGeometry(0.12, 14, 12), hairM);
-      bun.position.set(0, 0.32, -0.08);
-      hair.add(bun);
     }
 
-    function limb(len, r, material, y) {
-      const a = mesh(new THREE.CapsuleGeometry(r, len, 6, 10), material);
-      a.position.y = y;
-      return a;
+    function arm(x) {
+      const g = new THREE.Group();
+      g.position.set(x, 0.92, 0);
+      const upper = cyl(0.055, 0.05, 0.38, skin);
+      upper.position.y = -0.2;
+      g.add(upper);
+      const hand = ball(0.07, skin, 1, 1, 1);
+      hand.position.y = -0.42;
+      g.add(hand);
+      hips.add(g);
+      return g;
     }
-    const armL = new THREE.Group();
-    armL.position.set(-0.34, 0.86, 0);
-    hips.add(armL);
-    armL.add(limb(0.34, 0.055, skin, -0.2));
-    const handL = mesh(new THREE.SphereGeometry(0.065, 12, 10), skin);
-    handL.position.y = -0.40;
-    armL.add(handL);
+    const armL = arm(-0.36);
+    const armR = arm(0.36);
 
-    const armR = new THREE.Group();
-    armR.position.set(0.34, 0.86, 0);
-    hips.add(armR);
-    armR.add(limb(0.34, 0.055, skin, -0.2));
-    const handR = mesh(new THREE.SphereGeometry(0.065, 12, 10), skin);
-    handR.position.y = -0.40;
-    armR.add(handR);
-
-    const legL = new THREE.Group();
-    legL.position.set(-0.12, 0.42, 0);
-    hips.add(legL);
-    legL.add(limb(0.28, 0.07, pants, -0.16));
-    const shoeL = mesh(new THREE.SphereGeometry(0.09, 12, 10), phys(opt.shoes || 0x2a2a40, { roughness: 0.4 }));
-    shoeL.scale.set(1.15, 0.55, 1.35);
-    shoeL.position.set(0, -0.34, 0.04);
-    legL.add(shoeL);
-
-    const legR = new THREE.Group();
-    legR.position.set(0.12, 0.42, 0);
-    hips.add(legR);
-    legR.add(limb(0.28, 0.07, pants, -0.16));
-    const shoeR = shoeL.clone();
-    legR.add(shoeR);
+    function leg(x) {
+      const g = new THREE.Group();
+      g.position.set(x, 0.46, 0);
+      const thigh = cyl(0.075, 0.065, 0.32, pants);
+      thigh.position.y = -0.16;
+      g.add(thigh);
+      const shoe = ball(0.095, std(opt.shoes || 0x2a2a40, { roughness: 0.4 }), 1.2, 0.55, 1.4);
+      shoe.position.set(0, -0.36, 0.04);
+      g.add(shoe);
+      hips.add(g);
+      return g;
+    }
+    const legL = leg(-0.13);
+    const legR = leg(0.13);
 
     root.scale.setScalar(opt.scale || 1);
     scene.add(root);
-    return {
-      root: root, hips: hips, head: head, smile: smile,
-      armL: armL, armR: armR, legL: legL, legR: legR,
-      eyeL: eyeL, eyeR: eyeR
-    };
+    return { root: root, hips: hips, head: head, smile: smile, armL: armL, armR: armR, eyeL: eyeL, eyeR: eyeR };
   }
 
   const milo = makeChar({
     skin: 0xf0b48a, shirt: 0x3a7bfd, pants: 0x3d4a6a, hair: 0x4a2a14,
-    eye: 0x3a6ad6, style: "boy", scale: 1.0, shoes: 0x2b3348
+    eye: 0x3a6ad6, style: "boy", scale: 1.12, shoes: 0x2b3348
   });
-  milo.root.position.set(-0.35, 0, 1.15);
+  milo.root.position.set(-0.45, 0, 1.25);
 
   const lila = makeChar({
     skin: 0xf3c29a, shirt: 0xff6b8a, pants: 0xffd166, hair: 0xd46a1a,
-    eye: 0x3aa36a, style: "girl", scale: 0.82, shoes: 0xff8fab
+    eye: 0x3aa36a, style: "girl", scale: 0.9, shoes: 0xff8fab
   });
-  lila.root.position.set(1.55, 0, 2.4);
-  lila.root.rotation.y = 0.2;
+  lila.root.position.set(1.7, 0, 2.2);
 
   function blink(ch, t, phase) {
-    const n = (Math.sin(t * 2.4 + phase) + 1) * 0.5;
-    const k = n > 0.93 ? 1 - (n - 0.93) / 0.07 : 0;
-    const y = 1 - k * 0.85;
-    ch.eyeL.lid.scale.y = 0.45 + k * 1.4;
-    ch.eyeR.lid.scale.y = 0.45 + k * 1.4;
-    ch.eyeL.group.scale.y = 1 - k * 0.15;
-    ch.eyeR.group.scale.y = 1 - k * 0.15;
+    const n = (Math.sin(t * 2.3 + phase) + 1) * 0.5;
+    const k = n > 0.92 ? (n - 0.92) / 0.08 : 0;
+    ch.eyeL.lid.scale.y = 0.42 + k * 1.6;
+    ch.eyeR.lid.scale.y = 0.42 + k * 1.6;
   }
   function idle(ch, t, phase) {
-    ch.hips.position.y = Math.sin(t * 2.6 + phase) * 0.018;
-    ch.head.rotation.z = Math.sin(t * 1.3 + phase) * 0.04;
+    ch.hips.position.y = Math.sin(t * 2.5 + phase) * 0.02;
+    ch.head.rotation.z = Math.sin(t * 1.2 + phase) * 0.04;
   }
 
   const titleEl = document.getElementById("title");
@@ -367,10 +311,6 @@
     subEl.style.opacity = on ? "1" : "0";
   }
 
-  const camFrom = new THREE.Vector3();
-  const camTo = new THREE.Vector3();
-  const look = new THREE.Vector3();
-
   function story(t) {
     const x = Math.max(0, Math.min(DURATION, t));
     idle(milo, x, 0.2);
@@ -378,63 +318,59 @@
     blink(milo, x, 0.0);
     blink(lila, x, 1.7);
 
-    /* default poses */
-    milo.armR.rotation.z = 0.15;
-    milo.armL.rotation.z = -0.15;
-    lila.armR.rotation.z = 0.12;
-    lila.armL.rotation.z = -0.12;
-    milo.head.rotation.y = 0;
-    lila.head.rotation.y = -0.3;
+    milo.armR.rotation.z = 0.18;
+    milo.armL.rotation.z = -0.18;
+    lila.armR.rotation.z = 0.14;
+    lila.armL.rotation.z = -0.14;
 
-    titleEl.style.opacity = x < 3.2 ? String(Math.min(1, x * 1.2)) : String(Math.max(0, 1 - (x - 3.2) * 1.4));
+    titleEl.style.opacity = x < 3.4 ? String(Math.min(1, x * 1.3)) : String(Math.max(0, 1 - (x - 3.4) * 1.5));
 
-    if (x < 6.5) {
-      /* close-up Milo */
-      camera.position.set(-0.15, 1.55, 3.05);
-      camera.lookAt(-0.35, 1.28, 1.15);
-      milo.head.rotation.y = Math.sin(x * 1.1) * 0.25;
-      milo.head.rotation.x = -0.06 + Math.sin(x * 0.8) * 0.04;
-      milo.armR.rotation.z = 0.55;
-      milo.armR.rotation.x = -0.6;
-      cookie.position.set(-0.08, 1.05, 1.28);
-      cookie.rotation.y = x * 0.6;
-      showSub("Meet Milo.", x > 0.6 && x < 4.2);
+    if (x < 6.4) {
+      camera.position.set(0.05, 1.42, 4.15);
+      camera.lookAt(-0.35, 1.15, 1.25);
+      milo.head.rotation.y = Math.sin(x * 1.05) * 0.28;
+      milo.head.rotation.x = -0.04;
+      milo.armR.rotation.z = 0.5;
+      milo.armR.rotation.x = -0.55;
+      cookie.position.set(-0.12, 1.12, 1.45);
+      cookie.rotation.y = x * 0.5;
+      showSub("Meet Milo.", x > 0.5 && x < 4.3);
     } else if (x < 11.2) {
-      const u = (x - 6.5) / 4.7;
-      lila.root.position.lerp(new THREE.Vector3(0.55, 0, 1.25), 0.08);
-      lila.root.rotation.y = -0.55;
-      lila.head.rotation.y = -0.35;
-      milo.head.rotation.y = 0.45;
-      camera.position.set(0.15, 1.48, 3.55);
-      camera.lookAt(0.1, 1.15, 1.2);
-      cookie.position.set(0.12, 0.98, 0.72);
-      showSub("This is his sister, Lila.", x < 10.4);
+      const u = Math.min(1, (x - 6.4) / 1.6);
+      lila.root.position.set(1.7 - u * 1.15, 0, 2.2 - u * 0.9);
+      lila.root.rotation.y = -0.5;
+      lila.head.rotation.y = -0.25;
+      milo.head.rotation.y = 0.4;
+      camera.position.set(0.2, 1.38, 4.55);
+      camera.lookAt(0.05, 1.05, 1.2);
+      cookie.position.set(0.15, 0.98, 0.85);
+      showSub("This is his sister, Lila.", x < 10.5);
     } else {
-      milo.root.position.x = -0.28;
-      lila.root.position.set(0.42, 0, 1.2);
-      milo.head.rotation.y = 0.15;
-      lila.head.rotation.y = -0.15;
-      /* wave */
-      milo.armL.rotation.z = -0.2 - Math.sin(x * 8) * 0.45;
-      lila.armR.rotation.z = 0.2 + Math.sin(x * 8 + 0.4) * 0.45;
-      camera.position.set(0.05, 1.35, 3.9);
-      camera.lookAt(0.05, 1.05, 1.15);
-      cookie.position.set(0.08, 0.98, 0.85);
+      milo.root.position.set(-0.4, 0, 1.25);
+      lila.root.position.set(0.45, 0, 1.25);
+      milo.head.rotation.y = 0.12;
+      lila.head.rotation.y = -0.12;
+      milo.armL.rotation.z = -0.15 - Math.abs(Math.sin(x * 7)) * 0.7;
+      lila.armR.rotation.z = 0.15 + Math.abs(Math.sin(x * 7 + 0.3)) * 0.7;
+      camera.position.set(0.05, 1.32, 4.7);
+      camera.lookAt(0.02, 1.0, 1.2);
+      cookie.position.set(0.05, 0.98, 0.95);
       showSub("They have one last cookie. What will Milo do?", true);
-      titleEl.style.opacity = x > 14.2 ? String((x - 14.2) / 1.2) : "0";
-      if (x > 14.2) titleEl.textContent = "SHORT CLIP";
+      if (x > 14.3) {
+        titleEl.style.opacity = String((x - 14.3) / 1.2);
+        titleEl.textContent = "SHORT CLIP";
+      }
     }
   }
 
   addEventListener("resize", function () {
     camera.aspect = innerWidth / innerHeight;
     camera.updateProjectionMatrix();
-    renderer.setSize(innerWidth, innerHeight);
+    renderer.setSize(innerWidth, innerHeight, false);
   });
 
   function tick(now) {
-    const t = (now - t0) / 1000 - PLAY_DELAY;
-    story(t);
+    story((now - t0) / 1000 - PLAY_DELAY);
     renderer.render(scene, camera);
     requestAnimationFrame(tick);
   }

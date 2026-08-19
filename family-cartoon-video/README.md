@@ -1,15 +1,23 @@
 # Milo & Lila — short 3D clip
 
-Preview clip so you can judge the **stylized 3D characters** before a longer story.
+**File:** `out/milo-and-the-last-cookie.mp4`  
+**Length:** 16 seconds  
+**Format:** real MP4 with voice (not still frames)
 
-**File:** `out/milo-and-the-last-cookie.mp4` (about 16 seconds)
+This is a **preview** so you can judge the character look before a longer story.
 
-This is **not** a Pixar movie. No Blender studio, no film-quality skin/hair.
-It is a real 3D WebGL cartoon: big heads, big eyes, soft light, short kitchen scene.
+## What happens
+1. Meet Milo (blue shirt, last cookie)
+2. Sister Lila walks in
+3. Both wave: “What will Milo do?”
 
-## Story teaser
-1. Close-up: meet Milo with the last cookie
-2. Lila walks in
-3. Both wave — “What will Milo do?”
+## Honest look
+Stylized **toy 3D** characters (shaded spheres, big eyes, kitchen set).  
+This is **not** Pixar film quality. There is no Blender studio here.
 
 If you like this look, the full cookie-sharing story can be made next.
+
+```bash
+python3 family-cartoon-video/make_audio.py
+python3 family-cartoon-video/render_clip.py
+```

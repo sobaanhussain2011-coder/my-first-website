@@ -65,6 +65,8 @@ def main() -> None:
                 "-y",
                 "-f",
                 "x11grab",
+                "-draw_mouse",
+                "0",
                 "-video_size",
                 "1920x1080",
                 "-framerate",
