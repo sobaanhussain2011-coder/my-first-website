@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Let's Learn Letter A</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      width: 1920px;
+      height: 1200px;
+      overflow: hidden;
+      background: #FFE08A;
+      font-family: "Trebuchet MS", "Comic Sans MS", "Segoe UI", sans-serif;
+    }
+    .stage {
+      position: relative;
+      top: 60px;
+      width: 1280px;
+      height: 720px;
+      overflow: hidden;
+      transform: scale(1.5);
+      transform-origin: top left;
+    }
+
+    /* Classroom */
+    .wall {
+      position: absolute; inset: 0;
+      background: linear-gradient(#FFE08A 0 58%, #E8A04A 58% 62%, #7CC4F0 62% 100%);
+    }
+    .banner {
+      position: absolute; top: 18px; left: 0; right: 0;
+      display: flex; justify-content: center; gap: 10px;
+    }
+    .letter-flag {
+      width: 46px; height: 56px; border-radius: 8px 8px 14px 14px;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 900; font-size: 26px; color: white;
+      box-shadow: 0 6px 0 rgba(0,0,0,.12);
+    }
+    .window {
+      position: absolute; top: 86px; left: 70px; width: 170px; height: 150px;
+      background: linear-gradient(#9EE7FF, #FFF5B8);
+      border: 10px solid #8B5A2B; border-radius: 12px;
+      box-shadow: inset 0 0 0 6px #C48A4A;
+    }
+    .window::after {
+      content: ""; position: absolute; left: 50%; top: 0; bottom: 0; width: 8px; background: #8B5A2B;
+    }
+    .sun {
+      position: absolute; top: 14px; right: 18px; width: 42px; height: 42px;
+      background: #FFD93D; border-radius: 50%;
+      box-shadow: 0 0 18px #FFD93D;
+      animation: sunPulse 2.4s ease-in-out infinite;
+    }
+    .cloud {
+      position: absolute; background: #fff; border-radius: 40px; height: 28px;
+    }
+    .board {
+      position: absolute; top: 78px; left: 330px; width: 620px; height: 210px;
+      background: #2F8A4A; border: 14px solid #8B5A2B; border-radius: 16px;
+      box-shadow: 0 10px 0 #6A3F18;
+    }
+    .board-title {
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      color: #FFF8C2; font-size: 58px; font-weight: 900; letter-spacing: 3px;
+      text-shadow: 0 4px 0 #1E5A2E;
+      opacity: 0; transform: scale(.4) rotate(-8deg);
+      animation: burstIn 0.7s cubic-bezier(.2,1.4,.3,1) 5.4s forwards;
+    }
+    .shelf {
+      position: absolute; top: 78px; right: 48px; width: 150px; height: 210px;
+      background: #C9842A; border-radius: 10px; padding: 12px;
+      box-shadow: 0 8px 0 #8A5414;
+    }
+    .book { height: 28px; border-radius: 4px; margin-bottom: 10px; }
+    .desk {
+      position: absolute; bottom: 78px; width: 210px; height: 78px;
+      background: #E7B35A; border-radius: 12px 12px 6px 6px;
+      box-shadow: 0 12px 0 #B07A2A;
+    }
+    .desk::before {
+      content: ""; position: absolute; left: 18px; right: 18px; top: -18px; height: 18px;
+      background: #F3C97A; border-radius: 8px 8px 0 0;
+    }
+    .plant {
+      position: absolute; bottom: 168px; width: 46px; height: 54px;
+      background: #3CB371; border-radius: 50% 50% 40% 40%;
+    }
+    .pot {
+      position: absolute; bottom: 146px; width: 34px; height: 26px;
+      background: #D35400; border-radius: 0 0 10px 10px;
+    }
+
+    /* Character */
+    .buddy {
+      position: absolute; bottom: 92px; left: -220px;
+      width: 170px; height: 230px;
+      animation: walkIn 2.6s cubic-bezier(.22,.7,.2,1) .7s forwards,
+                 idle 1.4s ease-in-out 3.3s infinite;
+      z-index: 5;
+    }
+    .shadow {
+      position: absolute; bottom: -8px; left: 28px; width: 114px; height: 18px;
+      background: rgba(0,0,0,.18); border-radius: 50%;
+    }
+    .body {
+      position: absolute; bottom: 34px; left: 28px; width: 114px; height: 108px;
+      background: #FF8A3D; border-radius: 54px 54px 40px 40px;
+      border: 6px solid #E26520;
+    }
+    .head {
+      position: absolute; top: 0; left: 22px; width: 126px; height: 118px;
+      background: #FFE0B0; border-radius: 50%;
+      border: 6px solid #E8B07A;
+      z-index: 2;
+    }
+    .ear {
+      position: absolute; top: -10px; width: 34px; height: 34px;
+      background: #FF8A3D; border: 5px solid #E26520; border-radius: 50%;
+    }
+    .eye {
+      position: absolute; top: 42px; width: 18px; height: 24px;
+      background: #2B1B12; border-radius: 50%;
+    }
+    .eye::after {
+      content: ""; position: absolute; top: 4px; left: 4px; width: 6px; height: 8px;
+      background: #fff; border-radius: 50%;
+    }
+    .blush {
+      position: absolute; top: 68px; width: 16px; height: 10px;
+      background: #FF9AA8; border-radius: 50%; opacity: .85;
+    }
+    .smile {
+      position: absolute; top: 78px; left: 46px; width: 34px; height: 18px;
+      border-bottom: 5px solid #2B1B12; border-radius: 0 0 18px 18px;
+    }
+    .arm {
+      position: absolute; top: 118px; width: 28px; height: 70px;
+      background: #FFE0B0; border: 5px solid #E8B07A; border-radius: 16px;
+      transform-origin: 14px 8px;
+      z-index: 4;
+    }
+    .arm.left { left: 6px; transform: rotate(22deg); }
+    .arm.right {
+      right: 4px;
+      z-index: 5;
+      animation: wave 0.4s ease-in-out 3.2s 10 alternate;
+    }
+    .leg {
+      position: absolute; bottom: 0; width: 30px; height: 44px;
+      background: #4C8DFF; border: 5px solid #2E63C7; border-radius: 12px;
+    }
+    .buddy.walking .leg.left { animation: stepL .4s linear infinite; }
+    .buddy.walking .leg.right { animation: stepR .4s linear infinite; }
+    .shoes {
+      position: absolute; bottom: -8px; left: -6px; width: 38px; height: 14px;
+      background: #F4D03F; border-radius: 10px;
+      border: 4px solid #D4AC0D;
+    }
+
+    /* Speech */
+    .bubble {
+      position: absolute; left: 430px; bottom: 250px; width: 520px;
+      background: #fff; border-radius: 28px; padding: 22px 26px;
+      border: 6px solid #7B5CFF;
+      box-shadow: 0 10px 0 #5A3FE0;
+      opacity: 0; transform: translateY(16px) scale(.92);
+      animation: pop 0.45s cubic-bezier(.2,1.3,.3,1) 3.5s forwards;
+      z-index: 6;
+    }
+    .bubble::after {
+      content: ""; position: absolute; left: 70px; bottom: -22px;
+      border-width: 22px 18px 0 0; border-style: solid;
+      border-color: #fff transparent transparent transparent; filter: drop-shadow(-4px 4px 0 #7B5CFF);
+    }
+    .bubble p {
+      font-size: 28px; line-height: 1.35; color: #3A2060; font-weight: 800;
+    }
+
+    .stars {
+      position: absolute; top: 40px; left: 0; right: 0; text-align: center;
+      font-size: 34px; opacity: 0;
+      animation: sparkle 0.6s ease 5.5s forwards;
+      z-index: 7;
+    }
+
+    @keyframes walkIn {
+      0% { left: -220px; }
+      100% { left: 250px; }
+    }
+    @keyframes idle {
+      0%,100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+    @keyframes wave {
+      from { transform: rotate(10deg); }
+      to { transform: rotate(-85deg); }
+    }
+    @keyframes stepL {
+      0%,100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+    @keyframes stepR {
+      0%,100% { transform: translateY(-10px); }
+      50% { transform: translateY(0); }
+    }
+    @keyframes burstIn {
+      to { opacity: 1; transform: scale(1) rotate(0); }
+    }
+    @keyframes pop {
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    @keyframes sparkle {
+      to { opacity: 1; }
+    }
+    @keyframes sunPulse {
+      0%,100% { transform: scale(1); }
+      50% { transform: scale(1.08); }
+    }
+  </style>
+</head>
+<body>
+  <div class="stage">
+    <div class="wall"></div>
+    <div class="banner">
+      <div class="letter-flag" style="background:#FF5C8A">A</div>
+      <div class="letter-flag" style="background:#FFB703">B</div>
+      <div class="letter-flag" style="background:#06D6A0">C</div>
+      <div class="letter-flag" style="background:#4CC9F0">D</div>
+      <div class="letter-flag" style="background:#9B5DE5">E</div>
+      <div class="letter-flag" style="background:#F15BB5">F</div>
+      <div class="letter-flag" style="background:#00BBF9">G</div>
+      <div class="letter-flag" style="background:#FEE440">H</div>
+    </div>
+    <div class="window"><div class="sun"></div><div class="cloud" style="top:70px;left:18px;width:54px"></div></div>
+    <div class="board"><div class="board-title">🌟 LET'S LEARN! 🌟</div></div>
+    <div class="shelf">
+      <div class="book" style="background:#FF5C8A"></div>
+      <div class="book" style="background:#4CC9F0"></div>
+      <div class="book" style="background:#FEE440"></div>
+      <div class="book" style="background:#06D6A0"></div>
+      <div class="book" style="background:#9B5DE5"></div>
+    </div>
+    <div class="desk" style="left:70px"></div>
+    <div class="desk" style="left:980px"></div>
+    <div class="pot" style="left:160px"></div>
+    <div class="plant" style="left:154px"></div>
+    <div class="pot" style="left:1088px"></div>
+    <div class="plant" style="left:1082px"></div>
+
+    <div class="buddy walking" id="buddy">
+      <div class="ear" style="left:18px"></div>
+      <div class="ear" style="right:18px"></div>
+      <div class="head">
+        <div class="eye" style="left:32px"></div>
+        <div class="eye" style="right:32px"></div>
+        <div class="blush" style="left:18px"></div>
+        <div class="blush" style="right:18px"></div>
+        <div class="smile"></div>
+      </div>
+      <div class="arm left"></div>
+      <div class="arm right"></div>
+      <div class="body"></div>
+      <div class="leg left" style="left:42px"><div class="shoes"></div></div>
+      <div class="leg right" style="right:42px"><div class="shoes"></div></div>
+      <div class="shadow"></div>
+    </div>
+
+    <div class="bubble">
+      <p>Hello, little learners! 👋<br/>Are you ready to learn a new letter today?</p>
+    </div>
+    <div class="stars">✨ 🌈 ✨</div>
+  </div>
+  <script>
+    setTimeout(() => document.getElementById("buddy").classList.remove("walking"), 3300);
+  </script>
+</body>
+</html>
