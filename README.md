@@ -1,3 +1,14 @@
+# VoiceNote + Walnut & Brass
+
+This repo now also contains **Walnut & Brass**, a full-stack chess web app.
+
+See `walnut-brass.md`, then:
+
+```bash
+cd backend && npx prisma migrate dev --name init && npm run dev
+cd frontend && npm run dev
+```
+
 # VoiceNote
 
 Dark VoiceNote app (React Native / Expo) matching the product design:

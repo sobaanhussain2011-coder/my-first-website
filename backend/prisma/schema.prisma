@@ -1,0 +1,79 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+// SQLite for local/dev (no Postgres in this environment).
+// Swap the datasource to postgresql + DATABASE_URL for production.
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String?  @unique
+  googleId     String?  @unique
+  username     String
+  isGuest      Boolean  @default(true)
+  elo          Int      @default(1200)
+  wins         Int      @default(0)
+  losses       Int      @default(0)
+  draws        Int      @default(0)
+  checkmates   Int      @default(0)
+  winStreak    Int      @default(0)
+  createdAt    DateTime @default(now())
+  gamesWhite   Game[]   @relation("White")
+  gamesBlack   Game[]   @relation("Black")
+  achievements UserAchievement[]
+}
+
+model Game {
+  id          String   @id @default(cuid())
+  mode        String
+  rated       Boolean  @default(false)
+  timePreset  String
+  minutes     Int      @default(0)
+  increment   Int      @default(0)
+  whiteId     String?
+  blackId     String?
+  white       User?    @relation("White", fields: [whiteId], references: [id])
+  black       User?    @relation("Black", fields: [blackId], references: [id])
+  pgn         String   @default("")
+  fen         String   @default("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
+  result      String   @default("*")
+  reason      String?
+  status      String   @default("active")
+  whiteName   String   @default("White")
+  blackName   String   @default("Black")
+  createdAt   DateTime @default(now())
+  endedAt     DateTime?
+  moves       Move[]
+}
+
+model Move {
+  id        String   @id @default(cuid())
+  gameId    String
+  game      Game     @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  ply       Int
+  san       String
+  fen       String
+  from      String
+  to        String
+  createdAt DateTime @default(now())
+}
+
+model Achievement {
+  key         String   @id
+  title       String
+  description String
+  users       UserAchievement[]
+}
+
+model UserAchievement {
+  userId         String
+  achievementKey String
+  unlockedAt     DateTime @default(now())
+  user           User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  achievement    Achievement @relation(fields: [achievementKey], references: [key])
+  @@id([userId, achievementKey])
+}
