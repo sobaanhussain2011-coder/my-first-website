@@ -10,20 +10,25 @@ Production-shaped online chess: local play, vs computer, and real Socket.IO mult
 
 Postgres + Redis are the intended production stores. This environment has neither, so the MVP uses SQLite and an in-memory matchmaking queue. The socket protocol and server-side `chess.js` validation stay the same.
 
-## Run
+## Chrome mein kaise khole
+
+Woh 2 commands **khud nahi chalti**. Aapke computer ki Terminal mein aapko unhe chalana hota hai.
+
+1. Computer pe [Node.js](https://nodejs.org) install karo (LTS).
+2. Ye project folder kholo.
+3. Terminal mein **ek** command likho:
 
 ```bash
-cd backend
-cp .env.example .env   # already present in this repo for local demo
-npx prisma migrate dev --name init
-npm run dev
-
-cd ../frontend
-npm install
-npm run dev
+chmod +x start-chess.sh
+./start-chess.sh
 ```
 
-Open http://localhost:5173
+4. Chrome kholo.
+5. Address bar mein yeh paste karke Enter:
+
+`http://localhost:5173/play`
+
+Jab tak Terminal band nahi karte, game Chrome mein khula rahega. Terminal band kiya to game band.
 
 ## Socket events
 
