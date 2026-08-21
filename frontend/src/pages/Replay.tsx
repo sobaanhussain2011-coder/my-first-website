@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import { Chess } from "chess.js";
 import { api } from "../lib/api";
 import { Board } from "../components/Board";
+import { PageHero } from "../components/Luxury";
 
 export function Replay() {
   const { id } = useParams();
@@ -23,15 +24,18 @@ export function Replay() {
   for (let n = 0; n < i; n++) chess.move(sans[n]);
 
   return (
-    <div className="max-w-xl mx-auto space-y-4">
-      <h1 className="font-display text-3xl text-brassb">Replay</h1>
-      <p className="font-mono text-sm text-inkdim">{meta}</p>
-      <Board chess={chess} selected={null} legal={new Set()} captures={new Set()} last={null} onSquare={() => undefined} disabled />
-      <div className="flex gap-2">
-        <button className="btn flex-1 py-2" onClick={() => setI(0)}>Start</button>
-        <button className="btn flex-1 py-2" onClick={() => setI((n) => Math.max(0, n - 1))}>Back</button>
-        <button className="btn flex-1 py-2" onClick={() => setI((n) => Math.min(sans.length, n + 1))}>Next</button>
-        <button className="btn flex-1 py-2" onClick={() => setI(sans.length)}>End</button>
+    <div className="max-w-xl mx-auto">
+      <PageHero kicker="The book" title="Replay">
+        {meta || "Turning the pages of a finished game."}
+      </PageHero>
+      <div className="salon-table mb-6">
+        <Board chess={chess} selected={null} legal={new Set()} captures={new Set()} last={null} onSquare={() => undefined} disabled />
+      </div>
+      <div className="grid grid-cols-4 gap-2">
+        <button className="btn py-3" onClick={() => setI(0)}>Start</button>
+        <button className="btn py-3" onClick={() => setI((n) => Math.max(0, n - 1))}>Back</button>
+        <button className="btn btn-brass py-3" onClick={() => setI((n) => Math.min(sans.length, n + 1))}>Next</button>
+        <button className="btn py-3" onClick={() => setI(sans.length)}>End</button>
       </div>
     </div>
   );

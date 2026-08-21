@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { api } from "../lib/api";
 import { useAuth } from "../lib/AuthContext";
+import { Field, PageHero } from "../components/Luxury";
 
 export function Profile() {
   const { user, becomeGuest, logout, refresh } = useAuth();
@@ -15,11 +16,14 @@ export function Profile() {
 
   if (!user) {
     return (
-      <div className="space-y-4">
-        <h1 className="font-display text-4xl">Profile</h1>
-        <p className="text-inkdim">Take a guest seat, or sign in with Google when it is configured.</p>
-        <button className="btn btn-brass px-4 py-2" onClick={() => becomeGuest()}>Guest seat</button>
-        <a className="btn px-4 py-2 inline-block" href="/auth/google">Google sign-in</a>
+      <div className="max-w-xl">
+        <PageHero kicker="Membership" title="Your name at the table">
+          Take a guest seat tonight, or arrive with Google when the house has it set.
+        </PageHero>
+        <div className="flex flex-wrap gap-3">
+          <button className="btn btn-brass px-5 py-3" onClick={() => becomeGuest()}>Guest seat</button>
+          <a className="btn px-5 py-3 inline-block" href="/auth/google">Google</a>
+        </div>
       </div>
     );
   }
@@ -27,25 +31,26 @@ export function Profile() {
   const p = (profile || user) as { wins?: number; losses?: number; draws?: number; elo?: number; username?: string; isGuest?: boolean };
 
   return (
-    <div className="max-w-xl space-y-5">
-      <h1 className="font-display text-4xl text-brassb">{p.username}</h1>
-      <div className="grid grid-cols-4 gap-2 text-center">
-        {[["ELO", p.elo], ["W", p.wins], ["L", p.losses], ["D", p.draws]].map(([k, v]) => (
-          <div key={String(k)} className="panel-card p-3">
-            <div className="font-mono text-xs text-inkdim">{k}</div>
-            <div className="font-display text-2xl">{v ?? 0}</div>
+    <div className="max-w-xl">
+      <PageHero kicker="Membership" title={p.username || "Player"} />
+      <div className="grid grid-cols-4 gap-3 mb-6">
+        {[["ELO", p.elo], ["Wins", p.wins], ["Losses", p.losses], ["Draws", p.draws]].map(([k, v]) => (
+          <div key={String(k)} className="stat-tile rounded-2xl p-4 text-center">
+            <div className="font-mono text-[10px] tracking-[0.2em] text-inkdim uppercase">{k}</div>
+            <div className="font-display text-2xl text-brassb mt-1">{v ?? 0}</div>
           </div>
         ))}
       </div>
-      <div className="panel-card p-4 space-y-2">
-        <label className="text-sm text-inkdim">Display name</label>
-        <div className="flex gap-2">
-          <input className="flex-1 bg-panel2 border border-brass/30 p-2" value={name} onChange={(e) => setName(e.target.value)} />
-          <button className="btn px-3" onClick={async () => { await api.username(name); await refresh(); }}>Save</button>
-        </div>
+      <div className="panel-card p-5 rounded-2xl space-y-4">
+        <Field label="How the room should announce you">
+          <div className="flex gap-2">
+            <input className="lux-input" value={name} onChange={(e) => setName(e.target.value)} />
+            <button className="btn btn-brass px-4" onClick={async () => { await api.username(name); await refresh(); }}>Save</button>
+          </div>
+        </Field>
+        {p.isGuest && <a className="btn px-4 py-2 inline-block" href="/auth/google">Link Google</a>}
+        <button className="btn px-4 py-2" onClick={() => logout()}>Leave the salon</button>
       </div>
-      {p.isGuest && <a className="btn px-4 py-2 inline-block" href="/auth/google">Link Google</a>}
-      <button className="btn px-4 py-2" onClick={() => logout()}>Leave table</button>
     </div>
   );
 }

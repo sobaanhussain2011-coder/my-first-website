@@ -12,14 +12,19 @@ type Props = {
   last: { from: string; to: string } | null;
   onSquare: (sq: Square) => void;
   disabled?: boolean;
+  salon?: boolean;
 };
 
-export function Board({ chess, flipped, selected, legal, captures, last, onSquare, disabled }: Props) {
+export function Board({ chess, flipped, selected, legal, captures, last, onSquare, disabled, salon }: Props) {
   const ranks = flipped ? [1, 2, 3, 4, 5, 6, 7, 8] : [8, 7, 6, 5, 4, 3, 2, 1];
   const files = flipped ? [...FILES].reverse() : FILES;
   return (
-    <div className="relative mx-auto w-full max-w-[min(74vh,680px)]">
-      <div className="board-frame">
+    <div className={`relative mx-auto w-full max-w-[min(74vh,680px)] ${salon ? "hero-board" : ""}`}>
+      <div className="board-frame relative">
+        <span className="corner corner-tl" />
+        <span className="corner corner-tr" />
+        <span className="corner corner-bl" />
+        <span className="corner corner-br" />
         <div className="relative overflow-hidden rounded-[12px]">
           <div className="grid grid-cols-8 aspect-square">
             {ranks.flatMap((rank) =>

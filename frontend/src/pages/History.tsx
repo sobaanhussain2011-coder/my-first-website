@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../lib/api";
 import { useAuth } from "../lib/AuthContext";
+import { PageHero } from "../components/Luxury";
 
 type Game = {
   id: string;
@@ -24,25 +25,29 @@ export function History() {
 
   if (!user) {
     return (
-      <div>
-        <h1 className="font-display text-4xl mb-3">History</h1>
-        <button className="btn btn-brass px-4 py-2" onClick={() => becomeGuest()}>Guest seat first</button>
+      <div className="max-w-xl">
+        <PageHero kicker="The ledger" title="Past tables">
+          Sit as a guest first, then every finished game is kept.
+        </PageHero>
+        <button className="btn btn-brass px-5 py-3" onClick={() => becomeGuest()}>Guest seat</button>
       </div>
     );
   }
 
   return (
-    <div className="space-y-4">
-      <h1 className="font-display text-4xl text-brassb">Game history</h1>
-      {!games.length && <p className="text-inkdim">No finished games yet.</p>}
-      <ul className="space-y-2">
+    <div>
+      <PageHero kicker="The ledger" title="Past tables">
+        Reopen any finished game, move by move, as it was played.
+      </PageHero>
+      {!games.length && <p className="text-inkdim">The book is still blank.</p>}
+      <ul className="space-y-3">
         {games.map((g) => (
-          <li key={g.id} className="panel-card p-3 flex justify-between gap-3">
+          <li key={g.id} className="panel-card rounded-2xl p-5 flex justify-between items-center gap-4">
             <div>
-              <div className="font-display">{g.whiteName} vs {g.blackName}</div>
-              <div className="font-mono text-xs text-inkdim">{g.mode} · {g.result} · {g.reason || "—"}</div>
+              <div className="font-display text-lg text-ink">{g.whiteName} <span className="text-brass">vs</span> {g.blackName}</div>
+              <div className="font-mono text-[11px] text-inkdim mt-1 uppercase tracking-wider">{g.mode} · {g.result} · {g.reason || "closed"}</div>
             </div>
-            <Link className="btn px-3 py-1" to={`/replay/${g.id}`}>Replay</Link>
+            <Link className="btn btn-brass px-4 py-2" to={`/replay/${g.id}`}>Replay</Link>
           </li>
         ))}
       </ul>

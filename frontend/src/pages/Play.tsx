@@ -10,6 +10,7 @@ import { api } from "../lib/api";
 import { sfx, startMusic, stopMusic } from "../lib/audio";
 import { useAuth } from "../lib/AuthContext";
 import { createGame, gameOverReason, resultOf, statusText } from "../lib/engine";
+import { Field } from "../components/Luxury";
 import { loadSettings } from "../lib/settings";
 
 type Mode = "local" | "ai" | "online" | "friend";
@@ -251,39 +252,40 @@ export function Play() {
     <div className={`grid gap-6 lg:grid-cols-[minmax(0,1fr)_300px] ${theme !== "obsidian" ? `theme-${theme}` : ""}`}>
       <section className="space-y-3">
         {!started && (
-          <div className="panel-card p-5 space-y-4">
-            <h1 className="font-display text-3xl text-brassb">Choose your table</h1>
+          <div className="salon-table space-y-5">
+            <p className="font-mono text-[10px] tracking-[0.4em] text-brass">THE FLOOR</p>
+            <h1 className="font-display hero-title text-4xl">Choose your table</h1>
             <div className="flex flex-wrap gap-2">
               {(["local", "ai", "online", "friend"] as Mode[]).map((m) => (
                 <button key={m} className={`btn px-3 py-2 ${mode === m ? "btn-brass" : ""}`} onClick={() => setMode(m)}>{m}</button>
               ))}
             </div>
-            <div className="grid sm:grid-cols-2 gap-3 text-sm">
-              <label className="text-inkdim">Clock
-                <select className="mt-1 w-full bg-panel2 border border-brass/30 p-2 text-ink" value={minutes} onChange={(e) => setMinutes(Number(e.target.value))}>
+            <div className="grid sm:grid-cols-2 gap-3">
+              <Field label="Clock">
+                <select className="lux-input" value={minutes} onChange={(e) => setMinutes(Number(e.target.value))}>
                   <option value={0}>No timer</option>
                   {[1, 3, 5, 10, 15].map((n) => <option key={n} value={n}>{n} min</option>)}
                 </select>
-              </label>
-              <label className="text-inkdim">Increment
-                <input type="number" min={0} className="mt-1 w-full bg-panel2 border border-brass/30 p-2 text-ink" value={increment} onChange={(e) => setIncrement(Number(e.target.value))} />
-              </label>
+              </Field>
+              <Field label="Increment">
+                <input type="number" min={0} className="lux-input" value={increment} onChange={(e) => setIncrement(Number(e.target.value))} />
+              </Field>
               {mode === "ai" && (
                 <>
-                  <label className="text-inkdim">Difficulty
-                    <select className="mt-1 w-full bg-panel2 border border-brass/30 p-2 text-ink" value={aiLevel} onChange={(e) => setAiLevel(e.target.value as AiLevel)}>
+                  <Field label="House strength">
+                    <select className="lux-input" value={aiLevel} onChange={(e) => setAiLevel(e.target.value as AiLevel)}>
                       <option value="easy">Easy</option>
                       <option value="medium">Medium</option>
                       <option value="hard">Hard</option>
                       <option value="expert">Expert</option>
                     </select>
-                  </label>
-                  <label className="text-inkdim">You play
-                    <select className="mt-1 w-full bg-panel2 border border-brass/30 p-2 text-ink" value={humanColor} onChange={(e) => setHumanColor(e.target.value as "w" | "b")}>
-                      <option value="w">White</option>
-                      <option value="b">Black</option>
+                  </Field>
+                  <Field label="Your colour">
+                    <select className="lux-input" value={humanColor} onChange={(e) => setHumanColor(e.target.value as "w" | "b")}>
+                      <option value="w">Ivory</option>
+                      <option value="b">Obsidian</option>
                     </select>
-                  </label>
+                  </Field>
                 </>
               )}
             </div>
@@ -293,9 +295,9 @@ export function Play() {
               <button className="btn btn-brass w-full py-3" onClick={() => startOnline("quick")}>Quick match</button>
             ) : (
               <div className="space-y-2">
-                <button className="btn btn-brass w-full py-3" onClick={() => startOnline("create")}>Create private room</button>
+                <button className="btn btn-brass w-full py-3" onClick={() => startOnline("create")}>Open a private room</button>
                 <div className="flex gap-2">
-                  <input className="flex-1 bg-panel2 border border-brass/30 p-2 font-mono uppercase" placeholder="ROOM CODE" value={code} onChange={(e) => setCode(e.target.value)} />
+                  <input className="lux-input font-mono uppercase" placeholder="ROOM CODE" value={code} onChange={(e) => setCode(e.target.value)} />
                   <button className="btn px-4" onClick={() => startOnline("join")}>Join</button>
                 </div>
               </div>
@@ -325,7 +327,7 @@ export function Play() {
       </section>
 
       <aside className="space-y-3">
-        <div className="panel-card p-3 grid grid-cols-2 gap-2">
+        <div className="panel-card rounded-2xl p-4 grid grid-cols-2 gap-2">
           <button className="btn py-2" disabled={mode === "online" || mode === "friend" || undo.length === 0} onClick={() => {
             const fen = undo[undo.length - 1];
             setRedo((r) => [chess.fen(), ...r]);
@@ -360,8 +362,8 @@ export function Play() {
             <button className="btn btn-brass col-span-2 py-2" onClick={() => connectSocket().emit("game:rematch")}>Rematch</button>
           )}
         </div>
-        <div className="panel-card p-3">
-          <div className="font-display text-brassb mb-2">Moves</div>
+        <div className="panel-card rounded-2xl p-4">
+          <div className="font-display text-brassb mb-3 tracking-wide">The score</div>
           <ol className="font-mono text-xs text-inkdim max-h-48 overflow-auto space-y-1">
             {pairMoves(chess.history()).map((pair, i) => (
               <li key={i}>{i + 1}. {pair}</li>
@@ -369,15 +371,15 @@ export function Play() {
           </ol>
         </div>
         {(mode === "online" || mode === "friend") && (
-          <div className="panel-card p-3 space-y-2">
-            <div className="font-display text-brassb">Table talk</div>
+          <div className="panel-card rounded-2xl p-4 space-y-2">
+            <div className="font-display text-brassb tracking-wide">Table talk</div>
             <div className="h-28 overflow-auto font-mono text-xs text-inkdim space-y-1">
               {((room as { chat?: { id: string; username: string; text: string }[] } | null)?.chat || []).map((m) => (
                 <div key={m.id}><span className="text-brass">{m.username}:</span> {m.text}</div>
               ))}
             </div>
             <form className="flex gap-2" onSubmit={(e) => { e.preventDefault(); connectSocket().emit("game:chat", { text: chat }); setChat(""); }}>
-              <input className="flex-1 bg-panel2 border border-brass/30 px-2 py-1 text-sm" value={chat} onChange={(e) => setChat(e.target.value)} />
+              <input className="lux-input flex-1" value={chat} onChange={(e) => setChat(e.target.value)} />
               <button className="btn px-3">Send</button>
             </form>
             {(room as { code?: string } | null)?.code && (
@@ -388,8 +390,8 @@ export function Play() {
       </aside>
 
       {promo && (
-        <div className="fixed inset-0 bg-black/50 grid place-items-center z-20">
-          <div className="panel-card p-4 grid grid-cols-4 gap-2 text-3xl">
+        <div className="fixed inset-0 bg-black/70 grid place-items-center z-20">
+          <div className="panel-card rounded-2xl p-6 grid grid-cols-4 gap-2 text-3xl">
             {(["q", "r", "b", "n"] as const).map((p) => (
               <button key={p} className="btn py-3" onClick={() => applyLocal(promo.from, promo.to, p)}>
                 {p.toUpperCase()}

@@ -16,7 +16,7 @@ export function Shell() {
     <div className="felt-bg min-h-screen">
       <header className="px-4 py-4 flex items-center justify-between gap-4 border-b border-white/5">
         <div>
-          <div className="font-display text-lg tracking-[0.22em] text-brassb">WALNUT & BRASS</div>
+          <div className="font-display text-lg tracking-[0.22em] text-brassb">THE GOLD ROOM</div>
           <div className="gold-line mt-1 w-40" />
         </div>
         <nav className="flex flex-wrap justify-center gap-x-4 gap-y-1 text-[11px] uppercase tracking-[0.2em] font-mono text-inkdim">
