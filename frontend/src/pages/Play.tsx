@@ -254,7 +254,7 @@ export function Play() {
         {!started && (
           <div className="salon-table space-y-5">
             <p className="font-mono text-[10px] tracking-[0.4em] text-brass">THE FLOOR</p>
-            <h1 className="font-display hero-title text-4xl">Choose your table</h1>
+            <h1 className="font-display text-4xl text-ink">Choose your table</h1>
             <div className="flex flex-wrap gap-2">
               {(["local", "ai", "online", "friend"] as Mode[]).map((m) => (
                 <button key={m} className={`btn px-3 py-2 ${mode === m ? "btn-brass" : ""}`} onClick={() => setMode(m)}>{m}</button>

@@ -22,7 +22,7 @@ export function PageHero({
   return (
     <div className="mb-8 max-w-2xl">
       <p className="font-mono text-[11px] uppercase tracking-[0.35em] text-brass">{kicker}</p>
-      <h1 className="font-display hero-title text-4xl sm:text-5xl mt-2 mb-3">{title}</h1>
+      <h1 className="font-display text-4xl sm:text-5xl mt-2 mb-3 text-ink">{title}</h1>
       <Ornament className="max-w-xs mb-4" />
       {children && <p className="text-inkdim leading-relaxed">{children}</p>}
     </div>

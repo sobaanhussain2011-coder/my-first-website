@@ -2,12 +2,15 @@
 
 This repo now also contains **Walnut & Brass**, a full-stack chess web app.
 
-See `walnut-brass.md`, then:
+Chrome mein kholne ke liye Terminal mein:
 
 ```bash
-cd backend && npx prisma migrate dev --name init && npm run dev
-cd frontend && npm run dev
+./start-chess.sh
 ```
+
+Phir Chrome address bar: `http://localhost:5173/play`
+
+See `walnut-brass.md`.
 
 # VoiceNote
 

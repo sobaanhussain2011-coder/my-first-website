@@ -5,7 +5,7 @@ const links = [
   ["/", "Home"],
   ["/play", "Play"],
   ["/history", "History"],
-  ["/achievements", "Marks"],
+  ["/achievements", "Honours"],
   ["/profile", "Profile"],
   ["/settings", "Settings"],
 ];
@@ -14,27 +14,27 @@ export function Shell() {
   const { user } = useAuth();
   return (
     <div className="felt-bg min-h-screen">
-      <header className="px-4 py-4 flex items-center justify-between gap-4 border-b border-white/5">
+      <header className="topbar px-5 py-4 flex items-center justify-between gap-4">
         <div>
-          <div className="font-display text-lg tracking-[0.22em] text-brassb">THE GOLD ROOM</div>
-          <div className="gold-line mt-1 w-40" />
+          <div className="font-display text-xl tracking-[0.28em] text-brass">IVORY COURT</div>
+          <div className="text-[10px] font-mono tracking-[0.35em] text-inkdim mt-0.5">CREAM MARBLE · NEW LOOK</div>
         </div>
-        <nav className="flex flex-wrap justify-center gap-x-4 gap-y-1 text-[11px] uppercase tracking-[0.2em] font-mono text-inkdim">
+        <nav className="flex flex-wrap justify-center gap-x-5 gap-y-1 text-[11px] uppercase tracking-[0.22em] font-mono text-inkdim">
           {links.map(([to, label]) => (
             <NavLink
               key={to}
               to={to}
-              className={({ isActive }) => (isActive ? "text-brassb" : "hover:text-ink")}
+              className={({ isActive }) => (isActive ? "text-brass" : "hover:text-ink")}
             >
               {label}
             </NavLink>
           ))}
         </nav>
-        <div className="font-mono text-[11px] text-brassb/80">
-          {user ? `${user.username} · ${user.elo}` : "Guest table"}
+        <div className="font-mono text-[11px] text-brass">
+          {user ? `${user.username} · ${user.elo}` : "Guest"}
         </div>
       </header>
-      <main className="px-4 py-8 max-w-6xl mx-auto">
+      <main className="px-5 py-10 max-w-6xl mx-auto">
         <Outlet />
       </main>
     </div>
