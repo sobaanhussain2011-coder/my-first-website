@@ -5,7 +5,7 @@ const links = [
   ["/", "Home"],
   ["/play", "Play"],
   ["/history", "History"],
-  ["/achievements", "Achievements"],
+  ["/achievements", "Marks"],
   ["/profile", "Profile"],
   ["/settings", "Settings"],
 ];
@@ -14,9 +14,12 @@ export function Shell() {
   const { user } = useAuth();
   return (
     <div className="felt-bg min-h-screen">
-      <header className="border-b border-brass/20 px-4 py-3 flex items-center justify-between gap-4">
-        <div className="font-display text-xl text-brassb tracking-wide">Walnut & Brass</div>
-        <nav className="flex flex-wrap gap-3 text-xs uppercase tracking-[0.18em] font-mono text-inkdim">
+      <header className="px-4 py-4 flex items-center justify-between gap-4 border-b border-white/5">
+        <div>
+          <div className="font-display text-lg tracking-[0.22em] text-brassb">WALNUT & BRASS</div>
+          <div className="gold-line mt-1 w-40" />
+        </div>
+        <nav className="flex flex-wrap justify-center gap-x-4 gap-y-1 text-[11px] uppercase tracking-[0.2em] font-mono text-inkdim">
           {links.map(([to, label]) => (
             <NavLink
               key={to}
@@ -27,11 +30,11 @@ export function Shell() {
             </NavLink>
           ))}
         </nav>
-        <div className="font-mono text-xs text-inkdim">
-          {user ? `${user.username} · ${user.elo}` : "Guest"}
+        <div className="font-mono text-[11px] text-brassb/80">
+          {user ? `${user.username} · ${user.elo}` : "Guest table"}
         </div>
       </header>
-      <main className="px-4 py-6 max-w-6xl mx-auto">
+      <main className="px-4 py-8 max-w-6xl mx-auto">
         <Outlet />
       </main>
     </div>

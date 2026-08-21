@@ -3,85 +3,111 @@
 @tailwind utilities;
 
 :root {
-  --felt: #100b08;
-  --panel: #1b130e;
-  --panel-2: #241a13;
-  --wood-frame: #241610;
-  --wood-mid: #5a3825;
-  --brass: #c9a35a;
-  --brass-bright: #e8c887;
-  --ink: #f2e8d8;
-  --ink-dim: #b9a98e;
-  --square-light: #ecd9b3;
-  --square-dark: #8a5a34;
+  --felt: #07060c;
+  --panel: #0e0c14;
+  --panel-2: #16131f;
+  --brass: #e0b257;
+  --brass-bright: #f6d98a;
+  --ink: #f7f1e4;
+  --ink-dim: #9a8fb0;
 }
 
 html, body, #root {
   min-height: 100%;
-  background: var(--felt);
+  background: #07060c;
   color: var(--ink);
-  font-family: Inter, system-ui, sans-serif;
+  font-family: Outfit, system-ui, sans-serif;
 }
 
 body { margin: 0; }
 
 .felt-bg {
+  position: relative;
+  isolation: isolate;
   background:
-    radial-gradient(1200px 700px at 50% -10%, #2a1c12 0%, transparent 55%),
-    #100b08;
+    radial-gradient(900px 500px at 12% -10%, #5a3a12 0%, transparent 50%),
+    radial-gradient(800px 480px at 92% 0%, #2a1458 0%, transparent 46%),
+    radial-gradient(700px 400px at 50% 110%, #1a0c28 0%, transparent 50%),
+    linear-gradient(180deg, #0b0912 0%, #07060c 40%, #05040a 100%);
 }
+.felt-bg::before {
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(1px 1px at 12% 18%, #f6d98a66 0, transparent 2px),
+    radial-gradient(1px 1px at 28% 62%, #ffffff44 0, transparent 2px),
+    radial-gradient(1px 1px at 71% 24%, #f6d98a55 0, transparent 2px),
+    radial-gradient(1px 1px at 84% 78%, #ffffff33 0, transparent 2px),
+    radial-gradient(1px 1px at 46% 40%, #e0b25744 0, transparent 2px);
+  opacity: 0.7;
+  z-index: 0;
+}
+.felt-bg > * { position: relative; z-index: 1; }
 
 .panel-card {
-  background: linear-gradient(180deg, #241a13, #1b130e);
-  border: 1px solid #c9a35a33;
-  box-shadow: inset 0 1px 0 #e8c88714, 0 10px 28px #0006;
+  background: linear-gradient(180deg, rgba(28, 24, 40, 0.92), rgba(10, 8, 16, 0.92));
+  border: 1px solid rgba(224, 178, 87, 0.22);
+  box-shadow: inset 0 1px 0 rgba(246, 217, 138, 0.12), 0 16px 40px rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(16px);
 }
 
 .btn {
-  @apply font-ui text-sm tracking-wide uppercase;
-  border: 1px solid #c9a35a55;
-  background: linear-gradient(180deg, #3a2818, #241610);
-  color: #f2e8d8;
-  transition: transform 120ms ease, filter 120ms ease;
+  @apply font-ui text-sm tracking-[0.16em] uppercase;
+  border: 1px solid rgba(224, 178, 87, 0.35);
+  background: linear-gradient(180deg, #2a2438, #14101c);
+  color: #f7f1e4;
+  transition: transform 140ms ease, filter 140ms ease, box-shadow 140ms ease;
 }
-.btn:hover { filter: brightness(1.08); }
+.btn:hover { filter: brightness(1.12); box-shadow: 0 0 22px #e0b25733; }
 .btn:active { transform: scale(0.98); }
 .btn-brass {
-  background: linear-gradient(180deg, #e8c887, #c9a35a);
-  color: #1b130e;
-  border-color: #f3ddaa;
+  background: linear-gradient(180deg, #ffe7a8, #e0b257 55%, #b8892e);
+  color: #1a1208;
+  border-color: #fff1c4;
+  box-shadow: 0 8px 24px #e0b25744;
 }
 
-.piece-white {
-  background: linear-gradient(180deg, #fbf3e1, #d8c6a0);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  filter: drop-shadow(0 2px 2px #0008);
-  -webkit-text-stroke: 0.6px #b9a06a;
-}
-.piece-black {
-  background: linear-gradient(180deg, #4a3a2c, #2b2019);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  filter: drop-shadow(0 2px 2px #000a);
-  -webkit-text-stroke: 0.6px #1a120c;
+.board-frame {
+  background:
+    radial-gradient(120% 80% at 20% 0%, #3a2a14 0%, transparent 40%),
+    linear-gradient(160deg, #2a2110, #100c08 45%, #1a140c);
+  border-radius: 22px;
+  padding: 14px;
+  box-shadow:
+    0 0 0 1px #f6d98a66,
+    0 0 0 6px #1a140c,
+    0 0 0 7px #e0b25755,
+    0 30px 80px #000c,
+    0 0 60px #e0b25722;
 }
 
 .square-light {
   background:
-    linear-gradient(135deg, #f6e7c6 0%, #ecd9b3 55%, #d8c09a 100%),
-    repeating-linear-gradient(45deg, #0000 0 2px, #00000008 2px 3px);
+    linear-gradient(145deg, #fff6e4 0%, #f0d9b5 48%, #d7b88a 100%);
 }
 .square-dark {
   background:
-    linear-gradient(135deg, #a56c40 0%, #8a5a34 55%, #6e4526 100%),
-    repeating-linear-gradient(45deg, #0000 0 2px, #00000014 2px 3px);
+    linear-gradient(145deg, #3c3348 0%, #221c2e 55%, #14101c 100%);
 }
-.theme-slate .square-light { background: linear-gradient(135deg, #eef3f5, #dfe6e9); }
-.theme-slate .square-dark { background: linear-gradient(135deg, #4a6774, #3d5560); }
-.theme-emerald .square-light { background: linear-gradient(135deg, #f3eed4, #e9e4c9); }
-.theme-emerald .square-dark { background: linear-gradient(135deg, #3a8464, #2f6f52); }
-.theme-rosewood .square-light { background: linear-gradient(135deg, #f8e6d6, #f0d9c5); }
-.theme-rosewood .square-dark { background: linear-gradient(135deg, #8d4a4a, #7a3b3b); }
+.theme-walnut .square-light { background: linear-gradient(145deg, #f6e3c0, #e2c089); }
+.theme-walnut .square-dark { background: linear-gradient(145deg, #8a5a34, #4a2c18); }
+.theme-emerald .square-light { background: linear-gradient(145deg, #eef6d8, #d4e3a8); }
+.theme-emerald .square-dark { background: linear-gradient(145deg, #1f5c48, #0e2e26); }
+.theme-rosewood .square-light { background: linear-gradient(145deg, #ffe4dc, #f0c2b6); }
+.theme-rosewood .square-dark { background: linear-gradient(145deg, #6e2430, #2a0e14); }
+
+.gold-line {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #f6d98a, transparent);
+}
+
+.hero-title {
+  background: linear-gradient(180deg, #fff6d6 0%, #f6d98a 40%, #c9922e 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: none;
+  filter: drop-shadow(0 10px 24px #e0b25733);
+}

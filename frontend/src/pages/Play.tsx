@@ -248,11 +248,11 @@ export function Play() {
   const blackName = (room as { black?: { username: string } } | null)?.black?.username || (mode === "ai" && humanColor === "w" ? `CPU (${aiLevel})` : mode === "local" ? "Black" : user?.username || "Black");
 
   return (
-    <div className={`grid gap-6 lg:grid-cols-[minmax(0,1fr)_300px] ${theme !== "walnut" ? `theme-${theme}` : ""}`}>
+    <div className={`grid gap-6 lg:grid-cols-[minmax(0,1fr)_300px] ${theme !== "obsidian" ? `theme-${theme}` : ""}`}>
       <section className="space-y-3">
         {!started && (
           <div className="panel-card p-5 space-y-4">
-            <h1 className="font-display text-3xl text-brassb">Take a board</h1>
+            <h1 className="font-display text-3xl text-brassb">Choose your table</h1>
             <div className="flex flex-wrap gap-2">
               {(["local", "ai", "online", "friend"] as Mode[]).map((m) => (
                 <button key={m} className={`btn px-3 py-2 ${mode === m ? "btn-brass" : ""}`} onClick={() => setMode(m)}>{m}</button>

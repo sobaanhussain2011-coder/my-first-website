@@ -25,7 +25,7 @@ export function Settings() {
       <div className="panel-card p-4 space-y-2">
         <div className="font-display text-brassb">Board theme</div>
         <div className="grid grid-cols-2 gap-2">
-          {(["walnut", "slate", "emerald", "rosewood"] as BoardTheme[]).map((t) => (
+          {(["obsidian", "walnut", "emerald", "rosewood"] as BoardTheme[]).map((t) => (
             <button key={t} className={`btn py-3 ${s.theme === t ? "btn-brass" : ""}`} onClick={() => update({ theme: t })}>{t}</button>
           ))}
         </div>

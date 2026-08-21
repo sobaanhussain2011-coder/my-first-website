@@ -1,4 +1,4 @@
-export type BoardTheme = "walnut" | "slate" | "emerald" | "rosewood";
+export type BoardTheme = "obsidian" | "walnut" | "emerald" | "rosewood";
 
 export type Settings = {
   music: boolean;
@@ -8,19 +8,21 @@ export type Settings = {
   defaultIncrement: number;
 };
 
-const KEY = "wb-settings";
+const KEY = "wb-settings-v2";
 
 export const defaultSettings: Settings = {
   music: false,
   sfx: true,
-  theme: "walnut",
+  theme: "obsidian",
   defaultMinutes: 5,
   defaultIncrement: 0,
 };
 
 export function loadSettings(): Settings {
   try {
-    return { ...defaultSettings, ...JSON.parse(localStorage.getItem(KEY) || "{}") };
+    const raw = { ...defaultSettings, ...JSON.parse(localStorage.getItem(KEY) || "{}") };
+    if ((raw.theme as string) === "slate") raw.theme = "obsidian";
+    return raw;
   } catch {
     return defaultSettings;
   }

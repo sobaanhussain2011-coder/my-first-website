@@ -10,18 +10,18 @@ export function PlayerRow({
   active?: boolean;
 }) {
   return (
-    <div className={`flex items-center justify-between px-3 py-2 rounded-lg panel-card ${active ? "ring-1 ring-brass" : "opacity-80"}`}>
+    <div className={`flex items-center justify-between px-4 py-3 rounded-xl panel-card ${active ? "ring-1 ring-brass shadow-[0_0_24px_#e0b25733]" : "opacity-75"}`}>
       <div className="flex items-center gap-3">
-        <div className="w-8 h-8 rounded-full bg-woodmid grid place-items-center font-display text-brassb">
+        <div className="w-9 h-9 rounded-full grid place-items-center font-display text-sm text-[#1a1208] bg-gradient-to-br from-[#ffe7a8] to-[#c9922e]">
           {name.slice(0, 1).toUpperCase()}
         </div>
         <div>
-          <div className="font-display text-ink leading-tight">{name}</div>
+          <div className="font-display tracking-wide text-ink leading-tight">{name}</div>
           <div className="font-mono text-[11px] text-inkdim uppercase">{tag}</div>
         </div>
       </div>
       {clock != null && (
-        <div className={`font-mono text-lg ${active ? "text-brassb" : "text-inkdim"}`}>{clock}</div>
+        <div className={`font-mono text-xl ${active ? "text-brassb" : "text-inkdim"}`}>{clock}</div>
       )}
     </div>
   );
