@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Field, PageHero } from "../components/Luxury";
 import { loadSettings, saveSettings, type BoardTheme } from "../lib/settings";
-import { startMusic, stopMusic } from "../lib/audio";
+import { startMusic, stopMusic, unlockAudio, sfx } from "../lib/audio";
 
 const THEMES: { id: BoardTheme; label: string }[] = [
   { id: "obsidian", label: "Obsidian" },
@@ -16,8 +16,6 @@ export function Settings() {
     const merged = { ...s, ...next };
     setS(merged);
     saveSettings(merged);
-    if (merged.music) startMusic();
-    else stopMusic();
   }
   return (
     <div className="max-w-xl">
@@ -25,14 +23,36 @@ export function Settings() {
         Soft lights, a quiet board, and only the sounds you want.
       </PageHero>
       <div className="space-y-4">
-        <label className="flex items-center justify-between panel-card p-5 rounded-2xl">
+        <div className="flex items-center justify-between gap-4 panel-card p-5 rounded-2xl">
           <span className="font-display tracking-wide">Salon music</span>
-          <input type="checkbox" checked={s.music} onChange={(e) => update({ music: e.target.checked })} />
-        </label>
-        <label className="flex items-center justify-between panel-card p-5 rounded-2xl">
+          <button
+            className={`btn px-4 py-2 ${s.music ? "btn-brass" : ""}`}
+            onClick={() => {
+              const next = !s.music;
+              update({ music: next });
+              if (next) void startMusic();
+              else stopMusic();
+            }}
+          >
+            {s.music ? "On — playing" : "Off"}
+          </button>
+        </div>
+        <div className="flex items-center justify-between gap-4 panel-card p-5 rounded-2xl">
           <span className="font-display tracking-wide">Table sounds</span>
-          <input type="checkbox" checked={s.sfx} onChange={(e) => update({ sfx: e.target.checked })} />
-        </label>
+          <button
+            className={`btn px-4 py-2 ${s.sfx ? "btn-brass" : ""}`}
+            onClick={() => {
+              const next = !s.sfx;
+              update({ sfx: next });
+              if (next) {
+                void unlockAudio();
+                sfx.move();
+              }
+            }}
+          >
+            {s.sfx ? "On" : "Off"}
+          </button>
+        </div>
         <div className="panel-card p-5 rounded-2xl space-y-3">
           <div className="font-display text-brassb">Cloth &amp; stone</div>
           <div className="grid grid-cols-2 gap-2">

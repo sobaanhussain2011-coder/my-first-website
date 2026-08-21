@@ -4,6 +4,7 @@ import type { AuthedUser } from "./auth.js";
 import { enqueue, leave, tryMatch } from "./matchmaking.js";
 import {
   addChat,
+  allRooms,
   answerDraw,
   bindSocket,
   createFriendRoom,
@@ -157,4 +158,15 @@ export function attachSockets(io: Server) {
       handleDisconnect(io, socket);
     });
   });
+
+  setInterval(() => {
+    for (const room of allRooms()) {
+      if (room.status !== "active" || room.minutes <= 0) continue;
+      const state = publicState(room);
+      io.to(room.id).emit("game:clock", { whiteMs: state.whiteMs, blackMs: state.blackMs });
+      if (room.status === "over") {
+        io.to(room.id).emit("game:over", { result: room.result, reason: room.reason });
+      }
+    }
+  }, 250);
 }

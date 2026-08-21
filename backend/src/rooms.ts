@@ -45,6 +45,10 @@ export function getRoom(id: string) {
   return rooms.get(id);
 }
 
+export function allRooms() {
+  return [...rooms.values()];
+}
+
 export function roomForSocket(socketId: string) {
   const id = bySocket.get(socketId);
   return id ? rooms.get(id) : undefined;

@@ -21,15 +21,10 @@ export function PlayerRow({
         </div>
       </div>
       {clock != null && (
-        <div className={`font-mono text-xl ${active ? "text-brassb" : "text-inkdim"}`}>{clock}</div>
+        <div className={`font-mono text-2xl tracking-wider tabular-nums ${active ? "text-brass" : "text-inkdim"}`}>{clock}</div>
       )}
     </div>
   );
 }
 
-export function formatMs(ms: number) {
-  const s = Math.max(0, Math.floor(ms / 1000));
-  const m = Math.floor(s / 60);
-  const r = s % 60;
-  return `${m}:${r.toString().padStart(2, "0")}`;
-}
+export { formatMs } from "../lib/clock";

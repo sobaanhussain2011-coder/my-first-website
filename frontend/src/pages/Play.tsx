@@ -7,11 +7,12 @@ import { PlayerRow, formatMs } from "../components/PlayerRow";
 import { hintMove, pickAiMove, type AiLevel } from "../lib/ai";
 import { connectSocket } from "../lib/socket";
 import { api } from "../lib/api";
-import { sfx, startMusic, stopMusic } from "../lib/audio";
+import { sfx, startMusic, stopMusic, unlockAudio } from "../lib/audio";
 import { useAuth } from "../lib/AuthContext";
 import { createGame, gameOverReason, resultOf, statusText } from "../lib/engine";
 import { Field } from "../components/Luxury";
-import { loadSettings } from "../lib/settings";
+import { loadSettings, saveSettings } from "../lib/settings";
+import { Piece } from "../components/Piece";
 
 type Mode = "local" | "ai" | "online" | "friend";
 type Promo = { from: Square; to: Square };
@@ -43,8 +44,16 @@ export function Play() {
   const [code, setCode] = useState("");
   const [chat, setChat] = useState("");
   const [drawOffer, setDrawOffer] = useState<string | null>(null);
+  const [flagged, setFlagged] = useState<"w" | "b" | null>(null);
+  const [musicOn, setMusicOn] = useState(settings.music);
+  const [sfxOn, setSfxOn] = useState(settings.sfx);
   const saved = useRef(false);
+  const turnRef = useRef<"w" | "b">("w");
+  const overRef = useRef(false);
+  const clocksArmed = useRef(false);
   const theme = settings.theme;
+  turnRef.current = chess.turn();
+  overRef.current = chess.isGameOver() || Boolean(flagged);
 
   const legal = useMemo(() => {
     if (!selected) return new Set<string>();
@@ -55,32 +64,42 @@ export function Play() {
     return new Set(chess.moves({ square: selected, verbose: true }).filter((m) => m.captured).map((m) => m.to));
   }, [chess, selected]);
 
-  useEffect(() => {
-    if (settings.music) startMusic();
-    return () => stopMusic();
-  }, [settings.music]);
+  const roomStatus = (room as { status?: string } | null)?.status;
+  const clockLive =
+    started &&
+    clockEnabled(minutes) &&
+    (mode === "local" || mode === "ai" || roomStatus === "active");
 
   useEffect(() => {
-    if (!started || !clockEnabled(minutes) || mode === "online" || mode === "friend") return;
-    if (chess.isGameOver()) return;
+    if (!clockLive) return;
     const id = window.setInterval(() => {
-      if (chess.turn() === "w") setWhiteMs((ms) => Math.max(0, ms - 200));
-      else setBlackMs((ms) => Math.max(0, ms - 200));
-    }, 200);
+      if (overRef.current) return;
+      if (turnRef.current === "w") {
+        setWhiteMs((ms) => Math.max(0, ms - 100));
+      } else {
+        setBlackMs((ms) => Math.max(0, ms - 100));
+      }
+    }, 100);
     return () => clearInterval(id);
-  }, [started, minutes, chess, mode]);
+  }, [clockLive]);
 
   useEffect(() => {
-    if (whiteMs === 0 && clockEnabled(minutes) && started && !chess.isGameOver()) {
-      setStatus("White flagged.");
+    if (whiteMs > 0 || blackMs > 0) clocksArmed.current = true;
+    if (!started || !clockEnabled(minutes) || flagged || chess.isGameOver() || !clocksArmed.current) return;
+    if (whiteMs === 0) {
+      setFlagged("w");
+      setStatus("White flagged — Black wins.");
+      if (sfxOn) sfx.over();
+    } else if (blackMs === 0) {
+      setFlagged("b");
+      setStatus("Black flagged — White wins.");
+      if (sfxOn) sfx.over();
     }
-    if (blackMs === 0 && clockEnabled(minutes) && started && !chess.isGameOver()) {
-      setStatus("Black flagged.");
-    }
-  }, [whiteMs, blackMs, minutes, started, chess]);
+  }, [whiteMs, blackMs, minutes, started, flagged, chess, sfxOn]);
 
   function playSfx(kind: "move" | "capture" | "check" | "over") {
-    if (!settings.sfx) return;
+    if (!sfxOn) return;
+    void unlockAudio();
     sfx[kind]();
   }
 
@@ -91,10 +110,14 @@ export function Play() {
     setRedo([]);
     setLast(null);
     setStarted(true);
+    setFlagged(null);
+    clocksArmed.current = minutes > 0;
     saved.current = false;
     setWhiteMs(minutes * 60_000);
     setBlackMs(minutes * 60_000);
     setStatus(statusText(game));
+    void unlockAudio();
+    if (musicOn) void startMusic();
   }
 
   function applyLocal(from: Square, to: Square, promotion?: "q" | "r" | "b" | "n") {
@@ -149,7 +172,7 @@ export function Play() {
   }, [chess, started, user, mode, humanColor, aiLevel, minutes, increment]);
 
   function onSquare(sq: Square) {
-    if (!started || chess.isGameOver()) return;
+    if (!started || chess.isGameOver() || flagged) return;
     if (mode === "ai" && chess.turn() !== humanColor) return;
     if (mode === "online" || mode === "friend") {
       onlineMove(sq);
@@ -201,9 +224,12 @@ export function Play() {
       await ensureUser();
       const socket = connectSocket();
       socket.off("game:state");
+      socket.off("game:clock");
       socket.off("matchmaking:found");
       socket.off("game:over");
       socket.off("game:rematch");
+      void unlockAudio();
+      if (musicOn) void startMusic();
       socket.on("game:state", (state: { fen: string; drawOffer?: string | null; whiteMs?: number; blackMs?: number; ply?: number }) => {
         setRoom(state);
         setChess(createGame(state.fen));
@@ -211,7 +237,12 @@ export function Play() {
         if (state.whiteMs != null) setWhiteMs(state.whiteMs);
         if (state.blackMs != null) setBlackMs(state.blackMs);
         setStarted(true);
+        setFlagged(null);
         setStatus(statusText(createGame(state.fen)));
+      });
+      socket.on("game:clock", (clocks: { whiteMs?: number; blackMs?: number }) => {
+        if (clocks.whiteMs != null) setWhiteMs(clocks.whiteMs);
+        if (clocks.blackMs != null) setBlackMs(clocks.blackMs);
       });
       socket.on("game:over", (payload: { result: string; reason: string }) => {
         setStatus(`${payload.result} · ${payload.reason}`);
@@ -262,12 +293,22 @@ export function Play() {
             </div>
             <div className="grid sm:grid-cols-2 gap-3">
               <Field label="Clock">
-                <select className="lux-input" value={minutes} onChange={(e) => setMinutes(Number(e.target.value))}>
+                <select className="lux-input" value={[0, 1, 3, 5, 10, 15].includes(minutes) ? minutes : "custom"} onChange={(e) => {
+                  const v = e.target.value;
+                  if (v === "custom") setMinutes(8);
+                  else setMinutes(Number(v));
+                }}>
                   <option value={0}>No timer</option>
                   {[1, 3, 5, 10, 15].map((n) => <option key={n} value={n}>{n} min</option>)}
+                  <option value="custom">Custom minutes</option>
                 </select>
               </Field>
-              <Field label="Increment">
+              {![0, 1, 3, 5, 10, 15].includes(minutes) && (
+                <Field label="Custom minutes">
+                  <input type="number" min={1} max={180} className="lux-input" value={minutes} onChange={(e) => setMinutes(Math.max(1, Number(e.target.value) || 1))} />
+                </Field>
+              )}
+              <Field label="Increment (seconds)">
                 <input type="number" min={0} className="lux-input" value={increment} onChange={(e) => setIncrement(Number(e.target.value))} />
               </Field>
               {mode === "ai" && (
@@ -328,6 +369,32 @@ export function Play() {
 
       <aside className="space-y-3">
         <div className="panel-card rounded-2xl p-4 grid grid-cols-2 gap-2">
+          <button
+            className={`btn py-2 ${musicOn ? "btn-brass" : ""}`}
+            onClick={() => {
+              const next = !musicOn;
+              setMusicOn(next);
+              saveSettings({ ...loadSettings(), music: next });
+              if (next) void startMusic();
+              else stopMusic();
+            }}
+          >
+            {musicOn ? "Music on" : "Music off"}
+          </button>
+          <button
+            className={`btn py-2 ${sfxOn ? "btn-brass" : ""}`}
+            onClick={() => {
+              const next = !sfxOn;
+              setSfxOn(next);
+              saveSettings({ ...loadSettings(), sfx: next });
+              if (next) {
+                void unlockAudio();
+                sfx.move();
+              }
+            }}
+          >
+            {sfxOn ? "Sounds on" : "Sounds off"}
+          </button>
           <button className="btn py-2" disabled={mode === "online" || mode === "friend" || undo.length === 0} onClick={() => {
             const fen = undo[undo.length - 1];
             setRedo((r) => [chess.fen(), ...r]);
@@ -391,10 +458,10 @@ export function Play() {
 
       {promo && (
         <div className="fixed inset-0 bg-black/70 grid place-items-center z-20">
-          <div className="panel-card rounded-2xl p-6 grid grid-cols-4 gap-2 text-3xl">
+          <div className="panel-card rounded-2xl p-6 grid grid-cols-4 gap-3">
             {(["q", "r", "b", "n"] as const).map((p) => (
-              <button key={p} className="btn py-3" onClick={() => applyLocal(promo.from, promo.to, p)}>
-                {p.toUpperCase()}
+              <button key={p} className="btn py-3 grid place-items-center h-20" onClick={() => applyLocal(promo.from, promo.to, p)}>
+                <Piece color={chess.turn()} type={p} />
               </button>
             ))}
           </div>
