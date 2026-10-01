@@ -7,6 +7,40 @@ import { makeField, normalizeSex, parseMrzDate, parseMrzExpiry } from '@/lib/val
  * Extract TD3 (passport) MRZ lines from noisy OCR text.
  * TD3: two lines of 44 characters each, starting with P.
  */
+/** Strip non-MRZ characters; leave letter/digit disambiguation to softCorrectTd3. */
+function correctMrzOcrNoise(line: string): string {
+  return line
+    .toUpperCase()
+    .replace(/[«»]/g, '<')
+    .replace(/[|\u00A0]/g, '')
+    .replace(/[^A-Z0-9<]/g, '')
+}
+
+function softCorrectTd3(line1: string, line2: string): [string, string] {
+  // Line 1 is names/codes — prefer letters for digit lookalikes outside fillers.
+  let a = line1.slice(0, 44).padEnd(44, '<')
+  a = a.replace(/0/g, 'O')
+  // Line 2 has fixed digit slots for check digits and dates.
+  let b = line2.slice(0, 44).padEnd(44, '<')
+  const digitMap: Record<string, string> = {
+    O: '0',
+    D: '0',
+    Q: '0',
+    I: '1',
+    L: '1',
+    Z: '2',
+    S: '5',
+    B: '8',
+    G: '6',
+  }
+  const forceDigit = (idx: number) => {
+    const ch = b[idx]
+    if (digitMap[ch]) b = `${b.slice(0, idx)}${digitMap[ch]}${b.slice(idx + 1)}`
+  }
+  ;[9, 13, 14, 15, 16, 17, 18, 20, 21, 22, 23, 24, 25, 42].forEach(forceDigit)
+  return [a, b]
+}
+
 export function extractMrzLines(ocrText: string): string[] | null {
   const normalized = ocrText
     .toUpperCase()
@@ -15,24 +49,30 @@ export function extractMrzLines(ocrText: string): string[] | null {
 
   const lines = normalized
     .split(/\r?\n/)
-    .map((l) => l.replace(/[^A-Z0-9<]/g, ''))
+    .map((l) => correctMrzOcrNoise(l))
     .filter((l) => l.length >= 28)
 
   // Prefer classic passport TD3 (2 × 44).
   for (let i = 0; i < lines.length - 1; i++) {
-    const a = padOrTrim(lines[i], 44)
-    const b = padOrTrim(lines[i + 1], 44)
-    if (a.startsWith('P') && countFillers(a) + countFillers(b) >= 4) {
-      return [a, b]
+    let a = padOrTrim(lines[i], 44)
+    let b = padOrTrim(lines[i + 1], 44)
+    // Line 1 should start with P; undo digit-forcing on the leading P if OCR made it messy.
+    if (a.startsWith('P') || a.startsWith('0')) {
+      if (a.startsWith('0')) a = `P${a.slice(1)}`
+      ;[a, b] = softCorrectTd3(a, b)
+      if (a.startsWith('P') && countFillers(a) + countFillers(b) >= 4) {
+        return [a, b]
+      }
     }
   }
 
   // Sliding window over concatenated text for broken line breaks.
-  const compact = normalized.replace(/[^A-Z0-9<]/g, '')
-  const idx = compact.indexOf('P<')
+  const compact = correctMrzOcrNoise(normalized)
+  const idx = compact.indexOf('P<') >= 0 ? compact.indexOf('P<') : compact.indexOf('P')
   if (idx >= 0 && compact.length >= idx + 88) {
-    const a = compact.slice(idx, idx + 44)
-    const b = compact.slice(idx + 44, idx + 88)
+    let a = compact.slice(idx, idx + 44)
+    let b = compact.slice(idx + 44, idx + 88)
+    ;[a, b] = softCorrectTd3(a, b)
     if (countFillers(a) + countFillers(b) >= 4) return [a, b]
   }
 

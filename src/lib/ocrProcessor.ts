@@ -103,10 +103,17 @@ export function extractFieldsFromOcrText(text: string, overallConfidence: number
   return fields
 }
 
+const NEXT_LABEL =
+  /\b(?:surname|nom|given|pr[eé]nom|nationality|nationalit|date\s*of|sex|sexe|passport|document|authority|autorit|place\s*of|lieu\s*de)\b/i
+
 function matchLabeledValue(text: string, patterns: RegExp[]): string | null {
   for (const re of patterns) {
     const m = text.match(re)
-    if (m?.[1]) return m[1].trim()
+    if (m?.[1]) {
+      // Stop at the next passport label so OCR line-wrapping does not glue fields together.
+      const cleaned = m[1].split(NEXT_LABEL)[0]?.trim() ?? ''
+      if (cleaned) return cleaned
+    }
   }
   return null
 }
