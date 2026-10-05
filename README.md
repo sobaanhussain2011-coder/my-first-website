@@ -40,7 +40,39 @@ npm install
 npm run dev
 ```
 
-Open the URL printed by Vite (typically `http://localhost:5173`).
+### Port
+
+The Vite development server runs on **port `5173`**.
+
+Open the app at:
+
+```text
+http://localhost:5173
+```
+
+If Vite prints a different port (for example `5174`), use that instead.
+
+### Opening the app from a Cursor Cloud Agent
+
+When the app is started by a Cloud Agent, it runs on the **remote agent machine**, not on your laptop.
+
+1. Open **Cursor Desktop**
+2. Press `Ctrl+Shift+P` (Windows/Linux) or `Cmd+Shift+P` (Mac)
+3. Choose **Open Agents Window**
+4. Open this Cloud Agent chat
+5. In the **top-right of the agent panel**, click the **plug / connector icon** (Forwarded Ports)
+6. Find port **`5173`**
+7. Click **Open in Browser**
+
+After forwarding, open:
+
+```text
+http://localhost:5173
+```
+
+If local port `5173` is already in use, Cursor may map it to another local port — use the exact URL shown in the Ports menu.
+
+Note: the plug icon is only in **Cursor Desktop → Agents Window**. It is not available the same way on `cursor.com/agents` in a regular browser tab.
 
 ## How OCR works
 
