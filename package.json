@@ -1,0 +1,39 @@
+{
+  "name": "passport-scanner",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "lint": "oxlint",
+    "preview": "vite preview",
+    "smoke": "node scripts/smoke-test.mjs",
+    "sample:passport": "node scripts/make-sample-passport.mjs"
+  },
+  "dependencies": {
+    "clsx": "^2.1.1",
+    "exceljs": "^4.4.0",
+    "idb": "^8.0.3",
+    "lucide-react": "^1.49.0",
+    "mrz": "^5.0.2",
+    "pdfjs-dist": "^6.3.289",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "react-router-dom": "^7.18.4",
+    "tesseract.js": "^7.0.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.3.3",
+    "@types/node": "^24.13.3",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.7",
+    "@vitejs/plugin-react": "^6.1.1",
+    "oxlint": "^1.81.0",
+    "playwright-core": "^1.63.0",
+    "tailwindcss": "^4.3.3",
+    "typescript": "~6.0.2",
+    "vite": "^8.3.0"
+  },
+  "description": "Local-first passport scanner and document manager"
+}
